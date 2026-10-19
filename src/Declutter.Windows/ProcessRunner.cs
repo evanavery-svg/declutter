@@ -19,6 +19,7 @@ internal static class ProcessRunner
             StandardOutputEncoding = encoding,
             StandardErrorEncoding = encoding,
         };
+        CleanEnvironment(psi);
         using var process = Process.Start(psi) ?? throw new InvalidOperationException($"Couldn't start {fileName}.");
         var output = process.StandardOutput.ReadToEndAsync(ct);
         var error = process.StandardError.ReadToEndAsync(ct);
@@ -36,6 +37,7 @@ internal static class ProcessRunner
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
+        CleanEnvironment(psi);
         using var process = Process.Start(psi) ?? throw new InvalidOperationException($"Couldn't start {fileName}.");
         using var buffer = new MemoryStream();
         var copy = process.StandardOutput.BaseStream.CopyToAsync(buffer, ct);
@@ -43,6 +45,17 @@ internal static class ProcessRunner
         await copy;
         await process.WaitForExitAsync(ct);
         return new ProcessResult(process.ExitCode, Core.Util.TextDecoding.Decode(buffer.ToArray()), await error);
+    }
+
+    /// <summary>
+    /// If Declutter was started from PowerShell 7, its PSModulePath is inherited and makes Windows
+    /// PowerShell 5.1 load incompatible modules (Get-AuthenticodeSignature, Checkpoint-Computer fail).
+    /// Without the variable, Windows PowerShell uses its own defaults.
+    /// </summary>
+    private static void CleanEnvironment(ProcessStartInfo psi)
+    {
+        if (Path.GetFileName(psi.FileName).Equals("powershell.exe", StringComparison.OrdinalIgnoreCase))
+            psi.Environment.Remove("PSModulePath");
     }
 
     public static string SystemTool(string exe) => Path.Combine(Environment.SystemDirectory, exe);
