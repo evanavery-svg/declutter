@@ -36,6 +36,8 @@ fresh Windows machine, which is why the numbers are small.
 
 ## Security check
 
+![Security check](docs/security.png)
+
 Declutter isn't an antivirus, and doesn't pretend to be. Real virus detection needs definitions that update
 every day, and Windows 11 already has a good engine: **Microsoft Defender**. The Security page shows whether
 Defender (or your other antivirus) is on and up to date, lists anything it has found, and runs a quick scan or a
