@@ -1,0 +1,137 @@
+<UserControl x:Class="Declutter.App.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="ToolCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="Padding" Value="20,18" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="36,32,24,24" MaxWidth="1040" HorizontalAlignment="Left">
+            <TextBlock Text="{Binding Greeting}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding DriveHeadline}" Style="{StaticResource PageSubtitle}" />
+
+            <!-- Not elevated -->
+            <Border Style="{StaticResource Card}" Margin="0,20,12,0" Background="{DynamicResource Tone.Caution.Background}" BorderThickness="0"
+                    Visibility="{Binding IsElevated, Converter={StaticResource Collapsed}}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Restart as administrator" Command="{Binding Main.RestartAsAdminCommand}" VerticalAlignment="Center" />
+                    <TextBlock Text="&#xE7BA;" Style="{StaticResource Icon}" Foreground="{DynamicResource Tone.Caution.Foreground}" Margin="0,0,12,0" />
+                    <TextBlock TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource Tone.Caution.Foreground}" Margin="0,0,12,0"
+                               Text="Declutter is running without administrator rights, so Windows system caches and some startup apps can't be changed." />
+                </DockPanel>
+            </Border>
+
+            <!-- Disk -->
+            <Border Style="{StaticResource Card}" Margin="0,20,12,0" Padding="24,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Main.DriveName}" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Text="{Binding Main.DriveText}" FontFamily="{DynamicResource Font.Display}" FontSize="24" FontWeight="SemiBold" Margin="0,6,0,0" />
+                        <ProgressBar Value="{Binding Main.DriveUsedFraction, Mode=OneWay}" Maximum="1" Height="8" Margin="0,12,0,0" />
+                        <TextBlock Text="{Binding Main.Stats.Text}" Style="{StaticResource Body}" Margin="0,10,0,0" Foreground="{DynamicResource Tone.Good.Foreground}"
+                                   Visibility="{Binding Main.Stats.HasFreed, Converter={StaticResource Visible}}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource AccentButton}" Content="Find junk to clean" VerticalAlignment="Center" Margin="24,0,0,0"
+                            Command="{Binding GoCommand}" CommandParameter="{Binding Main.Junk}" />
+                </Grid>
+            </Border>
+
+            <TextBlock Text="Tools" Style="{StaticResource SectionTitle}" Margin="0,28,0,12" />
+            <UniformGrid Columns="2">
+                <Border Style="{StaticResource ToolCard}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="&#xE75C;" Style="{StaticResource Icon}" FontSize="24" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Left" />
+                        <Button DockPanel.Dock="Bottom" Content="Open Junk Cleaner" HorizontalAlignment="Left" Margin="0,14,0,0" Command="{Binding GoCommand}" CommandParameter="{Binding Main.Junk}" />
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Junk Cleaner" Style="{StaticResource ItemTitle}" FontSize="16" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" Text="Temp files, browser caches, old Windows Update downloads and crash dumps. Safe to remove, and often several gigabytes." />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource ToolCard}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="&#xE7E8;" Style="{StaticResource Icon}" FontSize="24" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Left" />
+                        <Button DockPanel.Dock="Bottom" Content="Manage startup apps" HorizontalAlignment="Left" Margin="0,14,0,0" Command="{Binding GoCommand}" CommandParameter="{Binding Main.Startup}" />
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Startup" Style="{StaticResource ItemTitle}" FontSize="16" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" Text="The biggest speed win: stop apps you don't need from launching every time you sign in. Nothing is uninstalled." />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource ToolCard}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="&#xE8B7;" Style="{StaticResource Icon}" FontSize="24" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Left" />
+                        <Button DockPanel.Dock="Bottom" Content="Find large files" HorizontalAlignment="Left" Margin="0,14,0,0" Command="{Binding GoCommand}" CommandParameter="{Binding Main.Files}" />
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Files" Style="{StaticResource ItemTitle}" FontSize="16" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" Text="Big files, old downloads and duplicate copies in your folders. You pick what goes, and it goes to the Recycle Bin." />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource ToolCard}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="&#xE71D;" Style="{StaticResource Icon}" FontSize="24" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Left" />
+                        <Button DockPanel.Dock="Bottom" Content="Review apps" HorizontalAlignment="Left" Margin="0,14,0,0" Command="{Binding GoCommand}" CommandParameter="{Binding Main.Apps}" />
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Apps" Style="{StaticResource ItemTitle}" FontSize="16" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" Text="Every installed app with its size, with preinstalled extras flagged. Uninstall what you never use." />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </UniformGrid>
+
+            <TextBlock Text="Safety net" Style="{StaticResource SectionTitle}" Margin="0,16,0,12" />
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0" Padding="20,18">
+                <StackPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Create restore point" Command="{Binding RestorePointCommand}" VerticalAlignment="Top" Margin="16,0,0,0"
+                                IsEnabled="{Binding IsElevated}" />
+                        <StackPanel>
+                            <TextBlock Text="Restore point" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0"
+                                       Text="Before big changes, save a restore point so Windows can roll back system settings if anything goes wrong. Optional, but a good habit." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Badge}" Margin="0,12,0,0" Padding="10,6"
+                            Background="{Binding RestorePointTone, Converter={StaticResource ToneBackground}}"
+                            Visibility="{Binding RestorePointMessage, Converter={StaticResource Visible}}">
+                        <TextBlock Text="{Binding RestorePointMessage}" TextWrapping="Wrap"
+                                   Foreground="{Binding RestorePointTone, Converter={StaticResource ToneForeground}}" />
+                    </Border>
+                    <Separator Margin="0,16" Background="{DynamicResource Brush.Border}" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Open activity log" Command="{Binding Main.OpenLogCommand}" VerticalAlignment="Top" Margin="16,0,0,0" />
+                        <StackPanel>
+                            <TextBlock Text="How Declutter keeps you safe" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" LineHeight="20"
+                                       Text="Nothing is removed until you review it and confirm. Your own files only ever go to the Recycle Bin. Windows and program folders are blocked by a built-in safety check. Startup apps are switched off, not deleted. Every change is written to the activity log." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="What actually makes a PC faster" Style="{StaticResource SectionTitle}" Margin="0,28,0,12" />
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0" Padding="20,18">
+                <TextBlock Style="{StaticResource Body}" LineHeight="22">
+                    <Run FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}">1. Fewer startup apps.</Run>
+                    <Run>Each one costs boot time and memory, all day long.</Run><LineBreak />
+                    <Run FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}">2. Free disk space.</Run>
+                    <Run>Windows slows down when the drive is over 90% full, and updates can fail.</Run><LineBreak />
+                    <Run FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}">3. Remove apps you don't use.</Run>
+                    <Run>Many run background services or updaters even when closed.</Run><LineBreak />
+                    <Run FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}">4. Restart now and then.</Run>
+                    <Run>Shutting down with Fast Startup isn't a full restart. Use Restart once a week.</Run><LineBreak />
+                    <Run FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}">Skip "registry cleaners".</Run>
+                    <Run>They don't speed anything up and can break things, which is why Declutter doesn't have one.</Run>
+                </TextBlock>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

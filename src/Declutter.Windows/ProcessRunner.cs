@@ -1,0 +1,30 @@
+using System.Diagnostics;
+using System.Text;
+
+namespace Declutter.Windows;
+
+internal sealed record ProcessResult(int ExitCode, string Output, string Error);
+
+internal static class ProcessRunner
+{
+    /// <summary>Runs a console tool hidden and captures its output.</summary>
+    public static async Task<ProcessResult> RunAsync(string fileName, string arguments, CancellationToken ct = default, Encoding? encoding = null)
+    {
+        var psi = new ProcessStartInfo(fileName, arguments)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = encoding,
+            StandardErrorEncoding = encoding,
+        };
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException($"Couldn't start {fileName}.");
+        var output = process.StandardOutput.ReadToEndAsync(ct);
+        var error = process.StandardError.ReadToEndAsync(ct);
+        await process.WaitForExitAsync(ct);
+        return new ProcessResult(process.ExitCode, await output, await error);
+    }
+
+    public static string SystemTool(string exe) => Path.Combine(Environment.SystemDirectory, exe);
+}

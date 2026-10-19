@@ -39,7 +39,15 @@ public sealed class StartupItem
     public string? FilePath { get; init; }
     public bool FileMissing { get; init; }
     public string? Publisher { get; init; }
+
+    /// <summary>The program's own description (from its version info), e.g. "Spotify".</summary>
+    public string? Description { get; init; }
+
     public bool RequiresAdmin { get; init; }
+
+    /// <summary>Set when the item can't be changed at all (e.g. it's controlled by policy).</summary>
+    public string? LockedReason { get; init; }
+
     public StartupAdvice Advice { get; init; }
     public string? AdviceReason { get; init; }
 

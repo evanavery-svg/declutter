@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C3DDBAA2-9436-4B26-8122-F870D24C364E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Declutter.Core", "src\Declutter.Core\Declutter.Core.csproj", "{816EFA97-F299-4CDB-8880-B84A81E52956}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Declutter.Windows", "src\Declutter.Windows\Declutter.Windows.csproj", "{A480861D-F5A0-4202-9066-D29F590A3B87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Declutter.App", "src\Declutter.App\Declutter.App.csproj", "{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{41A42BC1-AE4F-4479-9BCE-F61BC629473D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Declutter.Core.Tests", "tests\Declutter.Core.Tests\Declutter.Core.Tests.csproj", "{372B0612-E44C-428F-BBEB-DB347223B12A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Declutter.Windows.Tests", "tests\Declutter.Windows.Tests\Declutter.Windows.Tests.csproj", "{85CB02AC-D9E0-4801-9494-6A3A1030C760}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{816EFA97-F299-4CDB-8880-B84A81E52956}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{816EFA97-F299-4CDB-8880-B84A81E52956}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{816EFA97-F299-4CDB-8880-B84A81E52956}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{816EFA97-F299-4CDB-8880-B84A81E52956}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A480861D-F5A0-4202-9066-D29F590A3B87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A480861D-F5A0-4202-9066-D29F590A3B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A480861D-F5A0-4202-9066-D29F590A3B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A480861D-F5A0-4202-9066-D29F590A3B87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{372B0612-E44C-428F-BBEB-DB347223B12A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{372B0612-E44C-428F-BBEB-DB347223B12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{372B0612-E44C-428F-BBEB-DB347223B12A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{372B0612-E44C-428F-BBEB-DB347223B12A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85CB02AC-D9E0-4801-9494-6A3A1030C760}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85CB02AC-D9E0-4801-9494-6A3A1030C760}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85CB02AC-D9E0-4801-9494-6A3A1030C760}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85CB02AC-D9E0-4801-9494-6A3A1030C760}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{816EFA97-F299-4CDB-8880-B84A81E52956} = {C3DDBAA2-9436-4B26-8122-F870D24C364E}
+		{A480861D-F5A0-4202-9066-D29F590A3B87} = {C3DDBAA2-9436-4B26-8122-F870D24C364E}
+		{9EBFA06C-CB6C-47C6-98EA-9D2668B26E46} = {C3DDBAA2-9436-4B26-8122-F870D24C364E}
+		{372B0612-E44C-428F-BBEB-DB347223B12A} = {41A42BC1-AE4F-4479-9BCE-F61BC629473D}
+		{85CB02AC-D9E0-4801-9494-6A3A1030C760} = {41A42BC1-AE4F-4479-9BCE-F61BC629473D}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Declutter</AssemblyName>
+    <RootNamespace>Declutter.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Declutter.ico</ApplicationIcon>
+    <AssemblyTitle>Declutter</AssemblyTitle>
+    <Description>Safely clean up and speed up your Windows PC.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WPF leaves System.IO out of the implicit usings (Path clashes with Shapes.Path, which we don't use). -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Declutter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Declutter.Windows\Declutter.Windows.csproj" />
+  </ItemGroup>
+</Project>

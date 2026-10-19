@@ -1,0 +1,88 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+      VERSION: 1.0.${{ github.run_number }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Unit tests (core logic and safety rules)
+        run: dotnet test tests/Declutter.Core.Tests -c Release --logger "console;verbosity=normal"
+
+      - name: Integration tests (real Windows APIs)
+        run: dotnet test tests/Declutter.Windows.Tests -c Release --logger "console;verbosity=normal"
+
+      - name: Publish single-file executables
+        shell: pwsh
+        run: |
+          foreach ($rid in 'win-x64', 'win-arm64') {
+            dotnet publish src/Declutter.App -c Release -r $rid --self-contained `
+              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+              -p:EnableCompressionInSingleFile=true -p:DebugType=none `
+              -p:Version=$env:VERSION -o "artifacts/$rid"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item artifacts/win-x64/Declutter.exe release/Declutter.exe
+          Copy-Item artifacts/win-arm64/Declutter.exe release/Declutter-ARM64.exe
+
+      - name: Smoke test (launch the real app, open every page, take screenshots)
+        shell: pwsh
+        run: |
+          $out = Join-Path $PWD 'artifacts/smoke'
+          $p = Start-Process -FilePath 'release/Declutter.exe' -ArgumentList '--smoke-test', "`"$out`"" -PassThru
+          $null = $p.Handle  # keeps ExitCode available after exit
+          if (-not $p.WaitForExit(600000)) { $p.Kill(); Write-Error 'Smoke test timed out'; exit 1 }
+          if (Test-Path "$out/smoke-test.log") { Get-Content "$out/smoke-test.log" } else { Write-Warning 'No smoke-test log was written' }
+          Write-Host "Exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { exit 1 }
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: artifacts/smoke/
+          if-no-files-found: ignore
+
+      - name: Upload executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: Declutter-${{ env.VERSION }}
+          path: release/
+
+      - name: Publish release
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Declutter ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: |
+            release/Declutter.exe
+            release/Declutter-ARM64.exe
+          body: |
+            **Download `Declutter.exe`** (most laptops), or `Declutter-ARM64.exe` for Snapdragon / ARM laptops.
+
+            It's a single file with nothing to install. Double-click it and allow the administrator prompt.
+            Windows may show "Windows protected your PC" because the app isn't code-signed: click **More info → Run anyway**.
+
+            See the [README](https://github.com/${{ github.repository }}#readme) for what each tool does and how it keeps your files safe.

@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Light palette (Windows 11 inspired). Only colours live here; Styles.xaml uses them via DynamicResource. -->
+    <SolidColorBrush x:Key="Brush.Window" Color="#F3F3F3" />
+    <SolidColorBrush x:Key="Brush.Nav" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="Brush.Card" Color="#FBFBFB" />
+    <SolidColorBrush x:Key="Brush.CardHover" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#E5E5E5" />
+    <SolidColorBrush x:Key="Brush.Text" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#5D5D5D" />
+    <SolidColorBrush x:Key="Brush.TextTertiary" Color="#8A8A8A" />
+    <SolidColorBrush x:Key="Brush.Accent" Color="#005FB8" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#196EBF" />
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#3381C8" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Control" Color="#FDFDFD" />
+    <SolidColorBrush x:Key="Brush.ControlHover" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="Brush.ControlPressed" Color="#EDEDED" />
+    <SolidColorBrush x:Key="Brush.ControlBorder" Color="#D6D6D6" />
+    <SolidColorBrush x:Key="Brush.Danger" Color="#C42B1C" />
+    <SolidColorBrush x:Key="Brush.DangerHover" Color="#B02718" />
+    <SolidColorBrush x:Key="Brush.OnDanger" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Input" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Track" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="Brush.NavSelected" Color="#DCDCDC" />
+    <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#C2C2C2" />
+    <SolidColorBrush x:Key="Brush.Disabled" Color="#A0A0A0" />
+
+    <SolidColorBrush x:Key="Tone.Neutral.Background" Color="#EDEDED" />
+    <SolidColorBrush x:Key="Tone.Neutral.Foreground" Color="#424242" />
+    <SolidColorBrush x:Key="Tone.Info.Background" Color="#E0EEFA" />
+    <SolidColorBrush x:Key="Tone.Info.Foreground" Color="#00548F" />
+    <SolidColorBrush x:Key="Tone.Good.Background" Color="#DFF6DD" />
+    <SolidColorBrush x:Key="Tone.Good.Foreground" Color="#0E700E" />
+    <SolidColorBrush x:Key="Tone.Caution.Background" Color="#FFF4CE" />
+    <SolidColorBrush x:Key="Tone.Caution.Foreground" Color="#7A4A00" />
+    <SolidColorBrush x:Key="Tone.Danger.Background" Color="#FDE7E9" />
+    <SolidColorBrush x:Key="Tone.Danger.Foreground" Color="#A4262C" />
+</ResourceDictionary>

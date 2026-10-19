@@ -1,0 +1,245 @@
+<UserControl x:Class="Declutter.App.Views.FilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Declutter.App.ViewModels">
+    <UserControl.Resources>
+        <!-- Pills bound to a ChoiceSet -->
+        <DataTemplate x:Key="PillTemplate">
+            <RadioButton Style="{StaticResource Pill}" Content="{Binding Label}" IsChecked="{Binding IsSelected}"
+                         GroupName="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+        </DataTemplate>
+        <ItemsPanelTemplate x:Key="HorizontalPanel">
+            <StackPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+
+        <DataTemplate x:Key="FileRow">
+            <Border Style="{StaticResource Card}" Padding="14,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource ItemTitle}" FontWeight="Normal" MaxWidth="520" />
+                            <Border Style="{StaticResource Badge}" Margin="8,0,0,0" Background="{DynamicResource Tone.Info.Background}"
+                                    Visibility="{Binding InOneDrive, Converter={StaticResource Visible}}">
+                                <TextBlock Text="OneDrive" FontSize="11" Foreground="{DynamicResource Tone.Info.Foreground}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Folder}" Style="{StaticResource Caption}" ToolTip="{Binding Folder}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16,0" />
+                    <TextBlock Grid.Column="3" Text="{Binding SizeText}" Style="{StaticResource Figure}" FontSize="14" />
+                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" Margin="12,0,0,0" ToolTip="Show in File Explorer">
+                        <TextBlock Text="&#xE838;" Style="{StaticResource Icon}" FontSize="14" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DuplicateFileRow">
+            <Border Style="{StaticResource Card}" Padding="14,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource ItemTitle}" FontWeight="Normal" MaxWidth="520" />
+                            <Border Style="{StaticResource Badge}" Margin="8,0,0,0" Background="{DynamicResource Tone.Info.Background}"
+                                    Visibility="{Binding InOneDrive, Converter={StaticResource Visible}}">
+                                <TextBlock Text="OneDrive" FontSize="11" Foreground="{DynamicResource Tone.Info.Foreground}" />
+                            </Border>
+                            <Border Style="{StaticResource Badge}" Margin="8,0,0,0" Background="{DynamicResource Tone.Good.Background}"
+                                    Visibility="{Binding IsKeeper, Converter={StaticResource Visible}}" ToolTip="The copy we suggest keeping">
+                                <TextBlock Text="Keep" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Tone.Good.Foreground}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Folder}" Style="{StaticResource Caption}" ToolTip="{Binding Folder}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16,0" />
+                    <TextBlock Grid.Column="3" Text="{Binding SizeText}" Style="{StaticResource Figure}" FontSize="14" />
+                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" Margin="12,0,0,0" ToolTip="Show in File Explorer">
+                        <TextBlock Text="&#xE838;" Style="{StaticResource Icon}" FontSize="14" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="EmptyText" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+            <Setter Property="Margin" Value="4,16" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="36,32,36,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Large &amp; duplicate files" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="Find big files, old downloads and duplicate copies in your folders. You choose what to remove, and it goes to the Recycle Bin so you can still get it back." />
+        </StackPanel>
+
+        <!-- Where to look -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,20,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding IsBusy, Converter={StaticResource Visible}}" Margin="0,0,8,0" />
+                    <Button Style="{StaticResource AccentButton}" Content="Scan" Command="{Binding ScanCommand}" MinWidth="100" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Left" Text="Look in" Style="{StaticResource ItemTitle}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                <WrapPanel VerticalAlignment="Center">
+                    <ItemsControl ItemsSource="{Binding Locations}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="14" Background="{DynamicResource Brush.Control}" BorderBrush="{DynamicResource Brush.ControlBorder}" BorderThickness="1"
+                                        Padding="12,2,4,2" Margin="0,3,6,3" ToolTip="{Binding Path}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                        <Button Style="{StaticResource SubtleButton}" Command="{Binding RemoveCommand}" Padding="6,2" MinHeight="22" Margin="4,0,0,0" ToolTip="Don't scan this folder">
+                                            <TextBlock Text="&#xE711;" Style="{StaticResource Icon}" FontSize="10" />
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Command="{Binding AddFolderCommand}" Margin="0,3" MinHeight="28" Padding="10,2">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,6,0" />
+                            <TextBlock Text="Add folder" />
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,12,0,12">
+            <ProgressBar IsIndeterminate="{Binding IsBusy}" Visibility="{Binding IsBusy, Converter={StaticResource Visible}}" Margin="0,0,0,6" />
+            <TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" Visibility="{Binding Status, Converter={StaticResource Visible}}" Margin="0,0,0,6" />
+            <TextBlock Text="{Binding Summary}" Style="{StaticResource Body}" />
+            <ItemsControl ItemsSource="{Binding Tab.Options}" Tag="{Binding Tab.Group}" ItemTemplate="{StaticResource PillTemplate}"
+                          ItemsPanel="{StaticResource HorizontalPanel}" Margin="0,14,0,0"
+                          Visibility="{Binding HasResults, Converter={StaticResource Visible}}" />
+        </StackPanel>
+
+        <!-- Results -->
+        <Grid Grid.Row="3" Visibility="{Binding HasResults, Converter={StaticResource Visible}}">
+            <!-- Large files -->
+            <DockPanel Visibility="{Binding IsLargeTab, Converter={StaticResource Visible}}">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Show files" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <ItemsControl ItemsSource="{Binding LargeThreshold.Options}" Tag="{Binding LargeThreshold.Group}"
+                                  ItemTemplate="{StaticResource PillTemplate}" ItemsPanel="{StaticResource HorizontalPanel}" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource EmptyText}" Text="No files that large. Try a smaller size."
+                           Visibility="{Binding LargeFiles.Count, Converter={StaticResource Collapsed}}" />
+                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding LargeFiles}" ItemTemplate="{StaticResource FileRow}" />
+            </DockPanel>
+
+            <!-- Old downloads -->
+            <DockPanel Visibility="{Binding IsOldTab, Converter={StaticResource Visible}}">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Downloads not changed for" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <ItemsControl ItemsSource="{Binding OldAge.Options}" Tag="{Binding OldAge.Group}"
+                                  ItemTemplate="{StaticResource PillTemplate}" ItemsPanel="{StaticResource HorizontalPanel}" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource EmptyText}"
+                           Text="No old files in Downloads. Add your Downloads folder to the scan if it isn't listed above."
+                           Visibility="{Binding OldFiles.Count, Converter={StaticResource Collapsed}}" />
+                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding OldFiles}" ItemTemplate="{StaticResource FileRow}" />
+            </DockPanel>
+
+            <!-- Duplicates -->
+            <DockPanel Visibility="{Binding IsDuplicatesTab, Converter={StaticResource Visible}}">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <Button DockPanel.Dock="Right" Content="Select all extra copies" Command="{Binding SelectExtraCopiesCommand}" />
+                    <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center" Margin="0,0,16,0"
+                               Text="Files with exactly the same content (1 MB and up). The copy marked Keep is the one we suggest keeping. Declutter won't let you remove every copy." />
+                </DockPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource EmptyText}" Text="No duplicate files found."
+                           Visibility="{Binding DuplicateRows.Count, Converter={StaticResource Collapsed}}" />
+                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding DuplicateRows}">
+                    <ListBox.Resources>
+                        <DataTemplate DataType="{x:Type vm:DuplicateHeaderViewModel}">
+                            <StackPanel Margin="2,14,0,4">
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource ItemTitle}" />
+                                <TextBlock Text="{Binding Detail}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:FileRowViewModel}">
+                            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource DuplicateFileRow}" />
+                        </DataTemplate>
+                    </ListBox.Resources>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Biggest folders -->
+            <DockPanel Visibility="{Binding IsFoldersTab, Converter={StaticResource Visible}}">
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource Body}" Margin="0,0,0,10"
+                           Text="Where your space goes, by folder. Open one to look inside." />
+                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Folders}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource ItemTitle}" />
+                                        <TextBlock Style="{StaticResource Caption}">
+                                            <Run Text="{Binding Detail, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding FullPath, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <ProgressBar Grid.Column="1" Value="{Binding Fraction, Mode=OneWay}" Maximum="1" Height="6" VerticalAlignment="Center" Margin="16,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" Style="{StaticResource Figure}" FontSize="14" />
+                                    <Button Grid.Column="3" Content="Open" Command="{Binding OpenCommand}" Margin="16,0,0,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Grid>
+
+        <Border Grid.Row="4" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Padding="0,14,0,0" Margin="0,8,0,0"
+                Visibility="{Binding HasResults, Converter={StaticResource Visible}}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Clear selection" Command="{Binding ClearSelectionCommand}" Margin="0,0,8,0" />
+                    <Button Style="{StaticResource DangerButton}" Command="{Binding RecycleCommand}" MinWidth="180">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE74D;" Style="{StaticResource Icon}" FontSize="14" Foreground="{DynamicResource Brush.OnDanger}" Margin="0,0,8,0" />
+                            <TextBlock Text="Move to Recycle Bin" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <TextBlock Text="{Binding SelectionText}" VerticalAlignment="Center" FontSize="14" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>
