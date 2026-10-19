@@ -59,16 +59,10 @@ jobs:
           Write-Host "Exit code: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { exit 1 }
 
-      - name: Print screenshots (temporary, for review)
+      - name: Zip screenshots
         if: ${{ !cancelled() }}
         shell: pwsh
-        run: |
-          Get-ChildItem artifacts/smoke/*.png | ForEach-Object {
-            $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($_.FullName))
-            Write-Host "SHOT-BEGIN $($_.Name)"
-            for ($i = 0; $i -lt $b64.Length; $i += 8000) { Write-Host ("SHOT " + $b64.Substring($i, [Math]::Min(8000, $b64.Length - $i))) }
-            Write-Host "SHOT-END"
-          }
+        run: if (Test-Path artifacts/smoke/*.png) { New-Item -ItemType Directory -Force release-extras | Out-Null; Compress-Archive -Path artifacts/smoke/*.png -DestinationPath release-extras/screenshots.zip -Force }
 
       - name: Upload screenshots
         if: always()
@@ -95,6 +89,7 @@ jobs:
           files: |
             release/Declutter.exe
             release/Declutter-ARM64.exe
+            release-extras/screenshots.zip
           body: |
             **Download `Declutter.exe`** (most laptops), or `Declutter-ARM64.exe` for Snapdragon / ARM laptops.
 
