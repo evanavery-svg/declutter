@@ -154,8 +154,9 @@ public class WindowsIntegrationTests
     [Fact]
     public async Task SecurityCheck_SignaturesTellWindowsFromUnsignedFiles()
     {
-        string unsigned = Path.Combine(Folders.SafeTempDir!, $"declutter-unsigned-{Guid.NewGuid():N}.exe");
-        await File.WriteAllBytesAsync(unsigned, [0x4D, 0x5A, 0, 0]);
+        // An unsigned script gives a deterministic "NotSigned" (a fake .exe makes the check error out instead).
+        string unsigned = Path.Combine(Folders.SafeTempDir!, $"declutter-unsigned-{Guid.NewGuid():N}.ps1");
+        await File.WriteAllTextAsync(unsigned, "Write-Output 'hello'");
         try
         {
             var startup = new StartupManager(NullActivityLog.Instance, WindowsEnvironment.IsElevated);
@@ -163,6 +164,7 @@ public class WindowsIntegrationTests
             var notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
             var signatures = await collector.VerifyForTestsAsync([unsigned, notepad]);
 
+            Assert.True(signatures.ContainsKey(unsigned), "every file gets a result");
             Assert.False(signatures[unsigned].IsSigned);
             Assert.True(signatures[notepad].IsValid, "Windows' own catalog-signed programs count as signed");
         }

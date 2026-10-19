@@ -54,7 +54,9 @@ public sealed record ProcessInfo(int Pid, string Name, string? Path, string? Com
 /// <summary>Authenticode signature of a file. <see cref="Status"/> is PowerShell's SignatureStatus name.</summary>
 public sealed record SignatureInfo(string Status, string? Signer)
 {
-    public bool IsSigned => !Status.Equals("NotSigned", StringComparison.OrdinalIgnoreCase);
+    /// <summary>"UnknownError" means Windows couldn't read a signature at all, which we treat like none.</summary>
+    public bool IsSigned => !Status.Equals("NotSigned", StringComparison.OrdinalIgnoreCase) &&
+                            !Status.Equals("UnknownError", StringComparison.OrdinalIgnoreCase) && Status.Length > 0;
     public bool IsValid => Status.Equals("Valid", StringComparison.OrdinalIgnoreCase);
 }
 

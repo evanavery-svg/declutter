@@ -166,7 +166,7 @@ public sealed class SecurityCollector(StartupManager startup, KnownFolders folde
                 "$ErrorActionPreference='SilentlyContinue';" +
                 $"$r = foreach ($p in [IO.File]::ReadAllLines('{input.Replace("'", "''")}')) {{" +
                 "  $s = Get-AuthenticodeSignature -LiteralPath $p;" +
-                "  [pscustomobject]@{ P = $p; S = [string]$s.Status; C = $(if ($s.SignerCertificate) { $s.SignerCertificate.Subject } else { $null }) }" +
+                "  [pscustomobject]@{ P = $p; S = $(if ($s) { [string]$s.Status } else { 'UnknownError' }); C = $(if ($s.SignerCertificate) { $s.SignerCertificate.Subject } else { $null }) }" +
                 "};" +
                 $"ConvertTo-Json -InputObject @($r) -Compress | Set-Content -LiteralPath '{output.Replace("'", "''")}' -Encoding UTF8";
             string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));

@@ -414,6 +414,19 @@ public class SecurityTests : IDisposable
     [InlineData(null, null)]
     public void SignerName_TakesTheCommonName(string? subject, string? expected) => Assert.Equal(expected, Parsers.SignerName(subject));
 
+    [Theory]
+    [InlineData("Valid", true, true)]
+    [InlineData("NotSigned", false, false)]
+    [InlineData("UnknownError", false, false)]
+    [InlineData("HashMismatch", true, false)]
+    [InlineData("NotTrusted", true, false)]
+    public void SignatureStatus_Interpretation(string status, bool signed, bool valid)
+    {
+        var s = new SignatureInfo(status, null);
+        Assert.Equal(signed, s.IsSigned);
+        Assert.Equal(valid, s.IsValid);
+    }
+
     [Fact]
     public void CpuPercent_IsShareOfWholeMachine()
     {
