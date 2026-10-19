@@ -10,6 +10,8 @@ and it never deletes anything you haven't reviewed and confirmed.
 | **Files** | Finds large files, old downloads, duplicate copies and your biggest folders | | ✅ |
 | **Apps** | Lists every installed app with its size and flags preinstalled bloatware to uninstall | ✅ | ✅ |
 
+![Declutter home page](docs/home.png)
+
 ## Download and run
 
 1. Open the [**Releases**](../../releases/latest) page and download **`Declutter.exe`**
@@ -19,6 +21,17 @@ and it never deletes anything you haven't reviewed and confirmed.
    You can say No; those parts are just switched off.
 4. If Windows shows **"Windows protected your PC"**, click **More info → Run anyway**. This happens because
    the app isn't code-signed (signing certificates cost money), not because something is wrong.
+
+## Screenshots
+
+| Junk Cleaner | Startup |
+|---|---|
+| ![Junk Cleaner](docs/junk-cleaner.png) | ![Startup apps](docs/startup.png) |
+| **Duplicate files** | **Apps** |
+| ![Duplicate files](docs/files-duplicates.png) | ![Apps](docs/apps.png) |
+
+Light and dark mode follow your Windows setting. These screenshots are taken automatically by CI on a
+fresh Windows machine, which is why the numbers are small.
 
 ## How it keeps you safe
 
