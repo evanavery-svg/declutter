@@ -59,6 +59,11 @@ jobs:
           Write-Host "Exit code: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { exit 1 }
 
+      - name: Zip screenshots (temporary, for review)
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: if (Test-Path artifacts/smoke/*.png) { New-Item -ItemType Directory -Force release-extras | Out-Null; Compress-Archive -Path artifacts/smoke/*.png -DestinationPath release-extras/screenshots.zip -Force }
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,6 +89,7 @@ jobs:
           files: |
             release/Declutter.exe
             release/Declutter-ARM64.exe
+            release-extras/screenshots.zip
           body: |
             **Download `Declutter.exe`** (most laptops), or `Declutter-ARM64.exe` for Snapdragon / ARM laptops.
 
