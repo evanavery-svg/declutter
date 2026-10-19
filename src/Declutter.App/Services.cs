@@ -2,6 +2,7 @@ using Declutter.App.Mvvm;
 using Declutter.Core.Safety;
 using Declutter.Core.Util;
 using Declutter.Windows;
+using Declutter.Windows.Security;
 
 namespace Declutter.App;
 
@@ -19,6 +20,8 @@ public sealed class AppServices
         Startup = new StartupManager(Log, IsElevated);
         Apps = new InstalledApps(Log, IsElevated);
         Recycler = new ShellRecycler(ownerWindow);
+        Security = new SecurityCollector(Startup, Folders, IsElevated);
+        Defender = new DefenderClient(Log);
     }
 
     public KnownFolders Folders { get; }
@@ -30,6 +33,8 @@ public sealed class AppServices
     public StartupManager Startup { get; }
     public InstalledApps Apps { get; }
     public ShellRecycler Recycler { get; }
+    public SecurityCollector Security { get; }
+    public DefenderClient Defender { get; }
     public SessionStats Stats { get; } = new();
 
     /// <summary>Raised after anything that changes free disk space.</summary>

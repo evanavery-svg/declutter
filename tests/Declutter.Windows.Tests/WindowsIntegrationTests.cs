@@ -134,6 +134,45 @@ public class WindowsIntegrationTests
     }
 
     [Fact]
+    public async Task SecurityCheck_CollectsEvidenceAndAnalyzes()
+    {
+        var startup = new StartupManager(NullActivityLog.Instance, WindowsEnvironment.IsElevated);
+        var collector = new Security.SecurityCollector(startup, Folders, WindowsEnvironment.IsElevated) { CpuSampleWindow = TimeSpan.FromSeconds(1) };
+
+        var evidence = await collector.CollectAsync(null, CancellationToken.None);
+        var report = Core.Security.SecurityAnalyzer.Analyze(evidence, Folders, DateTime.UtcNow);
+
+        Assert.True(evidence.Processes.Count > 10, "processes were listed");
+        Assert.Contains(evidence.Processes, p => p.Name.Equals("svchost.exe", StringComparison.OrdinalIgnoreCase));
+        Assert.True(evidence.Connections.Count > 0, "netstat was parsed");
+        Assert.NotNull(evidence.HostsFile);
+        Assert.NotEmpty(evidence.FirewallProfiles);
+        Assert.DoesNotContain(report.Findings, f => f.CheckId == Core.Security.ImpostorCheck.Id); // a clean runner has no impostors
+        Assert.Equal(11, report.Outcomes.Count);
+    }
+
+    [Fact]
+    public async Task SecurityCheck_SignaturesTellWindowsFromUnsignedFiles()
+    {
+        string unsigned = Path.Combine(Folders.SafeTempDir!, $"declutter-unsigned-{Guid.NewGuid():N}.exe");
+        await File.WriteAllBytesAsync(unsigned, [0x4D, 0x5A, 0, 0]);
+        try
+        {
+            var startup = new StartupManager(NullActivityLog.Instance, WindowsEnvironment.IsElevated);
+            var collector = new Security.SecurityCollector(startup, Folders, WindowsEnvironment.IsElevated) { CpuSampleWindow = TimeSpan.Zero };
+            var notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+            var signatures = await collector.VerifyForTestsAsync([unsigned, notepad]);
+
+            Assert.False(signatures[unsigned].IsSigned);
+            Assert.True(signatures[notepad].IsValid, "Windows' own catalog-signed programs count as signed");
+        }
+        finally
+        {
+            File.Delete(unsigned);
+        }
+    }
+
+    [Fact]
     public void DriveSpace_IsReported()
     {
         var space = SystemTools.GetDriveSpace(Folders.SystemDrive);

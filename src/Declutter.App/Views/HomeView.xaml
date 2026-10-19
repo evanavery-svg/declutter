@@ -43,6 +43,20 @@
                 </Grid>
             </Border>
 
+            <!-- Security -->
+            <Border Style="{StaticResource Card}" Margin="0,12,12,0" Padding="24,18">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Run security check" VerticalAlignment="Center" Margin="24,0,0,0"
+                            Command="{Binding GoCommand}" CommandParameter="{Binding Main.Security}" />
+                    <TextBlock DockPanel.Dock="Left" Text="&#xEA18;" Style="{StaticResource Icon}" FontSize="24" Foreground="{DynamicResource Brush.Accent}" Margin="0,0,16,0" />
+                    <StackPanel>
+                        <TextBlock Text="Security check" Style="{StaticResource ItemTitle}" FontSize="16" />
+                        <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0"
+                                   Text="Looks for viruses, hidden crypto-miners, fake Windows programs and changed security settings, using Microsoft Defender for the actual virus scan." />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <TextBlock Text="Tools" Style="{StaticResource SectionTitle}" Margin="0,28,0,12" />
             <UniformGrid Columns="2">
                 <Border Style="{StaticResource ToolCard}">

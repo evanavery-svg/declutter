@@ -6,6 +6,10 @@
     <RootNamespace>Declutter.Windows</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <!-- WMI: Defender status, Security Center, firewall, processes. -->
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Declutter.Core\Declutter.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

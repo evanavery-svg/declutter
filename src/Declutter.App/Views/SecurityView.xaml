@@ -1,0 +1,156 @@
+<UserControl x:Class="Declutter.App.Views.SecurityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Padding" Value="10,3" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="36,32,36,24">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding IsBusy, Converter={StaticResource Visible}}" Margin="0,0,8,0" />
+                    <Button Command="{Binding RunCheckCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72C;" Style="{StaticResource Icon}" FontSize="14" Margin="0,0,8,0" />
+                            <TextBlock Text="Check again" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Security check" Style="{StaticResource PageTitle}" />
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Looks for viruses, hidden crypto-miners, programs pretending to be Windows, and settings malware likes to change. Declutter isn't an antivirus: Microsoft Defender does the actual virus scanning." />
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Headline -->
+            <Border Style="{StaticResource Card}" Margin="0,20,0,0" BorderThickness="0" Background="{Binding SummaryTone, Converter={StaticResource ToneBackground}}">
+                <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{Binding SummaryTone, Converter={StaticResource ToneForeground}}" />
+            </Border>
+            <ProgressBar IsIndeterminate="{Binding IsBusy}" Margin="0,10,0,0" Visibility="{Binding IsBusy, Converter={StaticResource Visible}}" />
+            <TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" Margin="0,6,0,0" Visibility="{Binding Status, Converter={StaticResource Visible}}" />
+
+            <!-- Microsoft Defender -->
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0" Padding="20,16">
+                <StackPanel>
+                    <DockPanel>
+                        <TextBlock Text="&#xEA18;" Style="{StaticResource Icon}" FontSize="22" Foreground="{DynamicResource Brush.Accent}" Margin="0,0,14,0" VerticalAlignment="Top" />
+                        <StackPanel>
+                            <TextBlock Text="Microsoft Defender" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Style="{StaticResource Body}" Margin="0,2,0,0"
+                                       Text="Windows' built-in antivirus. A quick scan checks the places malware usually hides and takes a few minutes. Anything found is quarantined safely." />
+                        </StackPanel>
+                    </DockPanel>
+                    <WrapPanel Margin="36,12,0,0">
+                        <Button Style="{StaticResource AccentButton}" Content="Run a quick scan" Command="{Binding QuickScanCommand}" Margin="0,0,8,6" />
+                        <Button Content="Update virus definitions" Command="{Binding UpdateDefinitionsCommand}" Margin="0,0,8,6" />
+                        <Button Content="Open Windows Security" Command="{Binding OpenWindowsSecurityCommand}" Margin="0,0,8,6" />
+                    </WrapPanel>
+                    <Border Style="{StaticResource Badge}" Margin="36,6,0,0" Padding="10,6"
+                            Background="{Binding DefenderTone, Converter={StaticResource ToneBackground}}"
+                            Visibility="{Binding DefenderMessage, Converter={StaticResource Visible}}">
+                        <TextBlock Text="{Binding DefenderMessage}" TextWrapping="Wrap" Foreground="{Binding DefenderTone, Converter={StaticResource ToneForeground}}" />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Findings -->
+            <ItemsControl ItemsSource="{Binding Findings}" Margin="0,16,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="20,16">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding SeverityGlyph}" Style="{StaticResource Icon}" FontSize="20" VerticalAlignment="Top" Margin="0,2,14,0"
+                                           Foreground="{Binding SeverityTone, Converter={StaticResource ToneForeground}}" />
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}" Margin="10,0,0,0" Background="{Binding SeverityTone, Converter={StaticResource ToneBackground}}">
+                                            <TextBlock Text="{Binding SeverityLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding SeverityTone, Converter={StaticResource ToneForeground}}" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource ItemTitle}" TextTrimming="None" TextWrapping="Wrap" />
+                                    </DockPanel>
+                                    <TextBlock Text="{Binding Explanation}" Style="{StaticResource Body}" Margin="0,6,0,0" LineHeight="19" />
+                                    <Border Background="{DynamicResource Brush.Window}" CornerRadius="4" Padding="10,6" Margin="0,10,0,0"
+                                            Visibility="{Binding Evidence, Converter={StaticResource Visible}}">
+                                        <TextBox Text="{Binding Evidence, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
+                                                 FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}"
+                                                 ToolTip="You can select and copy this" />
+                                    </Border>
+                                    <WrapPanel Margin="0,12,0,0">
+                                        <Button Style="{StaticResource ActionButton}" Content="Scan with Defender" Command="{Binding ScanFileCommand}" Visibility="{Binding CanScanFile, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Turn off at startup" Command="{Binding DisableStartupCommand}" Visibility="{Binding CanDisableStartup, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Run a quick scan" Command="{Binding QuickScanCommand}" Visibility="{Binding CanQuickScan, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Update definitions" Command="{Binding UpdateDefinitionsCommand}" Visibility="{Binding CanUpdateDefinitions, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Open Windows Security" Command="{Binding OpenWindowsSecurityCommand}" Visibility="{Binding CanOpenWindowsSecurity, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Show file" Command="{Binding ShowFileCommand}" Visibility="{Binding CanShowFile, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Search online" Command="{Binding SearchCommand}" Visibility="{Binding CanSearch, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="End program" Command="{Binding EndProcessCommand}" Visibility="{Binding CanEndProcess, Converter={StaticResource Visible}}" />
+                                    </WrapPanel>
+                                    <Border Style="{StaticResource Badge}" Margin="0,10,0,0" Padding="10,6" Background="{Binding ResultTone, Converter={StaticResource ToneBackground}}"
+                                            Visibility="{Binding Result, Converter={StaticResource Visible}}">
+                                        <TextBlock Text="{Binding Result}" TextWrapping="Wrap" Foreground="{Binding ResultTone, Converter={StaticResource ToneForeground}}" />
+                                    </Border>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Passed checks and CPU -->
+            <Grid Margin="0,8,0,0" Visibility="{Binding HasRun, Converter={StaticResource Visible}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="20,16">
+                    <StackPanel>
+                        <TextBlock Text="{Binding PassedTitle}" Style="{StaticResource ItemTitle}" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{Binding Passed}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,3">
+                                        <TextBlock Text="&#xE73E;" Style="{StaticResource Icon}" FontSize="12" Foreground="{DynamicResource Tone.Good.Foreground}" Margin="0,2,10,0" VerticalAlignment="Top" />
+                                        <TextBlock Text="{Binding}" Style="{StaticResource Body}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="20,16" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Busiest programs during the check" Style="{StaticResource ItemTitle}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,8"
+                                   Text="Share of your whole processor. Hidden miners usually sit near the top, though some pause while you're using the PC." />
+                        <TextBlock Text="Nothing was working hard. Your processor was mostly idle." Style="{StaticResource Body}"
+                                   Visibility="{Binding TopCpu.Count, Converter={StaticResource Collapsed}}" />
+                        <ItemsControl ItemsSource="{Binding TopCpu}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,4" ToolTip="{Binding Path}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="44" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <ProgressBar Grid.Column="1" Value="{Binding Fraction, Mode=OneWay}" Maximum="1" Height="6" VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding CpuText}" TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

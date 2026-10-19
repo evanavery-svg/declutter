@@ -5,6 +5,7 @@ and it never deletes anything you haven't reviewed and confirmed.
 
 | Tool | What it does | Speeds up | Frees space |
 |---|---|:-:|:-:|
+| **Security check** | Looks for viruses (via Microsoft Defender), hidden crypto-miners, fake Windows programs and tampered settings | ✅ | |
 | **Junk Cleaner** | Temp files, browser caches, old Windows Update downloads, crash dumps, Recycle Bin | | ✅ |
 | **Startup** | Turns off apps that launch every time you sign in (Spotify, Steam, Edge pre-loading, updaters…) | ✅ | |
 | **Files** | Finds large files, old downloads, duplicate copies and your biggest folders | | ✅ |
@@ -32,6 +33,29 @@ and it never deletes anything you haven't reviewed and confirmed.
 
 Light and dark mode follow your Windows setting. These screenshots are taken automatically by CI on a
 fresh Windows machine, which is why the numbers are small.
+
+## Security check
+
+Declutter isn't an antivirus, and doesn't pretend to be. Real virus detection needs definitions that update
+every day, and Windows 11 already has a good engine: **Microsoft Defender**. The Security page shows whether
+Defender (or your other antivirus) is on and up to date, lists anything it has found, and runs a quick scan or a
+definitions update with one click. On top of that it checks for signs of trouble that are easy to miss:
+
+| Check | What it catches |
+|---|---|
+| **Crypto-miners** | Known miner programs (XMRig, NiceHash, T-Rex…), command lines pointing at mining pools, connections to mining-pool ports, and unsigned programs quietly using lots of CPU |
+| **Fake Windows programs** | An `svchost.exe`, `csrss.exe` or `explorer.exe` running from outside the Windows folder, and look-alike names like `scvhost.exe` |
+| **Startup tricks** | Startup items that run hidden or encoded PowerShell, mshta, regsvr32 or script files, or programs that start from the Temp folder |
+| **Defender exclusions** | Folders or file types Defender has been told to ignore, a favourite trick of malware |
+| **Defender history** | Threats that were detected but not removed, or that someone chose to allow |
+| **Hosts file & proxy** | Redirected security, update or banking sites, and unexpected proxies |
+| **Hidden WMI commands** | WMI event subscriptions, a hiding place for "fileless" malware |
+| **Firewall & User Account Control** | Either one switched off |
+
+Every finding explains what it means, how sure we are ("Needs attention" vs "Worth a look"), and offers safe
+next steps: **Scan with Defender**, **Turn off at startup**, **Show file**, **Search online** or **End program**.
+Declutter never deletes a suspicious file itself; Defender quarantines it safely. Some checks (Defender
+exclusions, WMI) need administrator rights.
 
 ## How it keeps you safe
 
@@ -78,9 +102,9 @@ Built with C# / .NET 8 and WPF. Three projects:
 ```
 src/
   Declutter.Core/      Platform-neutral logic: safety guard, junk rules, file scanning, duplicate
-                       detection, startup/app advice. Fully unit-tested on any OS.
+                       detection, startup/app advice, security checks. Fully unit-tested on any OS.
   Declutter.Windows/   Windows implementations: Recycle Bin and shell APIs, registry, Task Scheduler,
-                       Store packages, restore points.
+                       Store packages, restore points, WMI/Defender/signature checks.
   Declutter.App/       The WPF app (MVVM). Follows the Windows light/dark setting.
 tests/
   Declutter.Core.Tests/     Unit tests, including a full fake Windows folder tree for the safety rules.

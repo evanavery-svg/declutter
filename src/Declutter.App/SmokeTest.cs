@@ -47,22 +47,30 @@ internal sealed class SmokeTest
             Directory.CreateDirectory(OutputDir);
             await RenderAsync(window, "1-home");
 
+            vm.CurrentPage = vm.Security;
+            await WaitAsync(vm.Security);
+            Check(vm.Security.HasRun, "Security check completed");
+            Log($"Security: {vm.Security.Summary}");
+            foreach (var f in vm.Security.Findings) Log($"  finding [{f.SeverityLabel}] {f.Title}");
+            foreach (var p in vm.Security.Passed) Log($"  passed: {p}");
+            await RenderAsync(window, "2-security");
+
             vm.CurrentPage = vm.Junk;
             await WaitAsync(vm.Junk);
             Check(vm.Junk.HasScanned, "Junk scan completed");
             Log($"Junk: {vm.Junk.Summary}");
-            await RenderAsync(window, "2-junk");
+            await RenderAsync(window, "3-junk");
 
             vm.CurrentPage = vm.Startup;
             await WaitAsync(vm.Startup);
             Log($"Startup: {vm.Startup.Summary}");
-            await RenderAsync(window, "3-startup");
+            await RenderAsync(window, "4-startup");
 
             vm.CurrentPage = vm.Apps;
             await WaitAsync(vm.Apps);
             Check(vm.Apps.Apps.Count > 0, "Apps were listed");
             Log($"Apps: {vm.Apps.Summary}");
-            await RenderAsync(window, "4-apps");
+            await RenderAsync(window, "5-apps");
 
             // Files: a throwaway folder in Documents (outside AppData, so the real safety rules apply)
             // with one large file and three identical copies.
@@ -81,11 +89,11 @@ internal sealed class SmokeTest
             await vm.Files.ScanAsync();
             Check(vm.Files.LargeFiles.Count == 1, "Large file found");
             Check(vm.Files.DuplicateRows.Count == 4, "Duplicate group found (1 header + 3 files)");
-            await RenderAsync(window, "5-files-large");
+            await RenderAsync(window, "6-files-large");
             vm.Files.Tab.Selected = FilesTab.Duplicates;
-            await RenderAsync(window, "6-files-duplicates");
+            await RenderAsync(window, "7-files-duplicates");
             vm.Files.Tab.Selected = FilesTab.Folders;
-            await RenderAsync(window, "7-files-folders");
+            await RenderAsync(window, "8-files-folders");
 
             vm.Files.SelectExtraCopiesCommand.Execute(null);
             Check(vm.Files.SelectedCount == 2, "Extra copies selected (keeper left unselected)");
@@ -99,11 +107,11 @@ internal sealed class SmokeTest
                 Owner = window,
             };
             dialog.Show();
-            await RenderAsync(dialog, "8-dialog");
+            await RenderAsync(dialog, "9-dialog");
             dialog.Close();
 
             vm.CurrentPage = vm.Home;
-            await RenderAsync(window, "9-home-after");
+            await RenderAsync(window, "10-home-after");
         }
         catch (Exception ex)
         {

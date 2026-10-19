@@ -12,6 +12,7 @@
         UseLayoutRounding="True">
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:HomeViewModel}"><views:HomeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SecurityViewModel}"><views:SecurityView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:JunkViewModel}"><views:JunkView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:StartupViewModel}"><views:StartupView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:FilesViewModel}"><views:FilesView /></DataTemplate>

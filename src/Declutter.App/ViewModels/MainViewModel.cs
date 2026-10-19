@@ -14,11 +14,12 @@ public sealed class MainViewModel : ObservableObject
     {
         Services = services;
         Home = new HomeViewModel(services, this);
+        Security = new SecurityViewModel(services);
         Junk = new JunkViewModel(services);
         Startup = new StartupViewModel(services);
         Files = new FilesViewModel(services);
         Apps = new AppsViewModel(services);
-        Pages = [Home, Junk, Startup, Files, Apps];
+        Pages = [Home, Security, Junk, Startup, Files, Apps];
         _currentPage = Home;
 
         RestartAsAdminCommand = new RelayCommand(RestartAsAdmin);
@@ -33,6 +34,7 @@ public sealed class MainViewModel : ObservableObject
 
     public AppServices Services { get; }
     public HomeViewModel Home { get; }
+    public SecurityViewModel Security { get; }
     public JunkViewModel Junk { get; }
     public StartupViewModel Startup { get; }
     public FilesViewModel Files { get; }
