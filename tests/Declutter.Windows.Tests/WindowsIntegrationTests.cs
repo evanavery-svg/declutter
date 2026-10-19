@@ -6,7 +6,7 @@ using Microsoft.Win32;
 
 namespace Declutter.Windows.Tests;
 
-public class WindowsIntegrationTests
+public class WindowsIntegrationTests(Xunit.Abstractions.ITestOutputHelper output)
 {
     private static readonly KnownFolders Folders = WindowsEnvironment.DetectKnownFolders();
 
@@ -161,12 +161,21 @@ public class WindowsIntegrationTests
         {
             var startup = new StartupManager(NullActivityLog.Instance, WindowsEnvironment.IsElevated);
             var collector = new Security.SecurityCollector(startup, Folders, WindowsEnvironment.IsElevated) { CpuSampleWindow = TimeSpan.Zero };
-            var notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
-            var signatures = await collector.VerifyForTestsAsync([unsigned, notepad]);
+            // dotnet.exe carries an embedded Microsoft signature; notepad.exe is catalog-signed, which
+            // some Windows builds can't verify, so its result is only reported.
+            string dotnet = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "dotnet.exe");
+            string notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+            var signatures = await collector.VerifyForTestsAsync([unsigned, dotnet, notepad]);
+            output.WriteLine($"notepad.exe: {signatures.GetValueOrDefault(notepad)}");
+            output.WriteLine($"dotnet.exe: {signatures.GetValueOrDefault(dotnet)}");
 
             Assert.True(signatures.ContainsKey(unsigned), "every file gets a result");
             Assert.False(signatures[unsigned].IsSigned);
-            Assert.True(signatures[notepad].IsValid, "Windows' own catalog-signed programs count as signed");
+            if (File.Exists(dotnet))
+            {
+                Assert.True(signatures[dotnet].IsValid, $"dotnet.exe should verify: {signatures.GetValueOrDefault(dotnet)}");
+                Assert.Equal("Microsoft Corporation", signatures[dotnet].Signer);
+            }
         }
         finally
         {

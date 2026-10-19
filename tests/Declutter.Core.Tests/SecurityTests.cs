@@ -96,6 +96,14 @@ public class SecurityTests : IDisposable
     }
 
     [Fact]
+    public void Miner_HighCpu_InProgramFiles_IsNotFlagged_EvenIfTheSignatureCantBeRead()
+    {
+        string path = ProgramFiles("encoder.exe");
+        Assert.Empty(MinerCheck.Evaluate([Proc(3, "encoder.exe", path, cpu: 95)], [], Signed((path, "UnknownError")), F).Findings);
+        Assert.Empty(MinerCheck.Evaluate([Proc(4, "svchost.exe", Sys32("svchost.exe"), cpu: 95)], [], Signed((Sys32("svchost.exe"), "NotSigned")), F).Findings);
+    }
+
+    [Fact]
     public void Miner_LowCpu_UnsignedApp_IsNotFlagged() =>
         Assert.Empty(MinerCheck.Evaluate([Proc(1, "tool.exe", Roaming("tool.exe"), cpu: 3)], [], NoSignatures, F).Findings);
 

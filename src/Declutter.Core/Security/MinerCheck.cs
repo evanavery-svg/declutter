@@ -102,10 +102,11 @@ public static class MinerCheck
 
         foreach (var p in processes.Where(p => p.CpuPercent >= HighCpuPercent && !flagged.Contains(p.Pid) && p.Path != null))
         {
+            // Only programs in folders anyone can write to. Windows and Program Files need admin rights to
+            // install into, and catalog signatures there can't always be verified, so flagging them would
+            // cry wolf about ordinary busy software.
             var sig = signatures.GetValueOrDefault(p.Path!);
-            bool trusted = sig is { IsValid: true };
-            bool suspicious = !trusted && (Locations.IsUserWritable(p.Path!, folders) || sig is { IsSigned: false });
-            if (!suspicious) continue;
+            if (sig is { IsValid: true } || !Locations.IsUserWritable(p.Path!, folders)) continue;
 
             findings.Add(new SecurityFinding
             {
