@@ -59,6 +59,12 @@ public abstract class PageViewModel(AppServices services) : ObservableObject
         {
             Status = "Cancelled.";
         }
+        catch (Exception ex)
+        {
+            // Pages often start work without a command (e.g. the first scan), so report errors here.
+            Status = "";
+            App.ReportError(ex);
+        }
         finally
         {
             IsBusy = false;

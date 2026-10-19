@@ -58,3 +58,18 @@ public class UtilTests
         }
     }
 }
+
+public class TextDecodingTests
+{
+    [Fact]
+    public void Utf16WithBom() => Assert.Equal("<Tasks>", TextDecoding.Decode([0xFF, 0xFE, .. System.Text.Encoding.Unicode.GetBytes("<Tasks>")]));
+
+    [Fact]
+    public void Utf16WithoutBom() => Assert.Equal("<Tasks>", TextDecoding.Decode(System.Text.Encoding.Unicode.GetBytes("<Tasks>")));
+
+    [Fact]
+    public void Utf8() => Assert.Equal("café", TextDecoding.Decode(System.Text.Encoding.UTF8.GetBytes("café")));
+
+    [Fact]
+    public void FallsBackToLatin1() => Assert.Equal("café", TextDecoding.Decode([0x63, 0x61, 0x66, 0xE9]));
+}

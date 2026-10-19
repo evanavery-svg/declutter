@@ -60,6 +60,28 @@ public class ScheduledTaskXmlTests
         Assert.Equal("\"C:\\Vendor\\helper.exe\" /quiet", helper.Command);
     }
 
+    [Fact]
+    public void ABrokenTask_DoesNotHideTheOthers()
+    {
+        string broken = Sample.Replace("<!-- \\Vendor\\Helper -->", "<!-- \\Bad -->\n<Task><Unclosed></Task>\n<!-- \\Vendor\\Helper -->");
+        Assert.Equal(2, ScheduledTaskXml.ParseStartupTasks(broken).Count);
+    }
+
+    [Fact]
+    public void SingleTaskOutput_WithoutTasksWrapper_IsParsed()
+    {
+        const string single = """
+            <?xml version="1.0" encoding="UTF-16"?>
+            <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+              <RegistrationInfo><URI>\Solo</URI></RegistrationInfo>
+              <Triggers><LogonTrigger /></Triggers>
+              <Actions><Exec><Command>solo.exe</Command></Exec></Actions>
+            </Task>
+            """;
+        var task = Assert.Single(ScheduledTaskXml.ParseStartupTasks(single));
+        Assert.Equal(@"\Solo", task.Path);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("ERROR: Access is denied.")]

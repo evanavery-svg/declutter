@@ -76,7 +76,7 @@ public sealed class StartupViewModel : PageViewModel
             UpdateSummary();
             return true;
         }
-        catch (Exception ex) when (ex is UnauthorizedAccessException or InvalidOperationException or IOException or System.Security.SecurityException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Services.Dialogs.Show($"Couldn't change \"{vm.Name}\"", ex.Message);
             return false;

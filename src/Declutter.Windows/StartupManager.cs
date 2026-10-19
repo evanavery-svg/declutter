@@ -209,7 +209,7 @@ public sealed class StartupManager(IActivityLog log, bool isElevated)
 
     private async Task<IReadOnlyList<StartupItem>> ReadScheduledTasksAsync(CancellationToken ct)
     {
-        var result = await ProcessRunner.RunAsync(ProcessRunner.SystemTool("schtasks.exe"), "/query /xml", ct);
+        var result = await ProcessRunner.RunDetectingEncodingAsync(ProcessRunner.SystemTool("schtasks.exe"), "/query /xml", ct);
         if (result.ExitCode != 0) return [];
 
         return ScheduledTaskXml.ParseStartupTasks(result.Output)

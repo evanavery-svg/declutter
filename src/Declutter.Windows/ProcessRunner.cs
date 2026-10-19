@@ -26,5 +26,24 @@ internal static class ProcessRunner
         return new ProcessResult(process.ExitCode, await output, await error);
     }
 
+    /// <summary>Runs a tool and decodes its output whatever encoding it wrote (schtasks may use UTF-16).</summary>
+    public static async Task<ProcessResult> RunDetectingEncodingAsync(string fileName, string arguments, CancellationToken ct = default)
+    {
+        var psi = new ProcessStartInfo(fileName, arguments)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException($"Couldn't start {fileName}.");
+        using var buffer = new MemoryStream();
+        var copy = process.StandardOutput.BaseStream.CopyToAsync(buffer, ct);
+        var error = process.StandardError.ReadToEndAsync(ct);
+        await copy;
+        await process.WaitForExitAsync(ct);
+        return new ProcessResult(process.ExitCode, Core.Util.TextDecoding.Decode(buffer.ToArray()), await error);
+    }
+
     public static string SystemTool(string exe) => Path.Combine(Environment.SystemDirectory, exe);
 }

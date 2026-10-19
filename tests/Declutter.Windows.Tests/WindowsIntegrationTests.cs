@@ -99,11 +99,19 @@ public class WindowsIntegrationTests
         if (!WindowsEnvironment.IsElevated) return; // creating logon tasks needs admin
         const string task = "DeclutterIntegrationTestTask";
         string schtasks = Path.Combine(Environment.SystemDirectory, "schtasks.exe");
-        await RunAsync(schtasks, $"/create /f /tn {task} /sc onlogon /tr \"{Path.Combine(Environment.SystemDirectory, "notepad.exe")}\"");
+        string created = await RunAsync(schtasks, $"/create /f /tn {task} /sc onlogon /tr \"{Path.Combine(Environment.SystemDirectory, "notepad.exe")}\"");
         try
         {
             var manager = new StartupManager(NullActivityLog.Instance, true);
-            var item = (await manager.GetItemsAsync()).Single(i => i.Source == StartupSource.ScheduledTask && i.Key == "\\" + task);
+            var items = await manager.GetItemsAsync();
+            var item = items.SingleOrDefault(i => i.Source == StartupSource.ScheduledTask && i.Key == "\\" + task);
+            if (item == null)
+            {
+                string single = await RunAsync(schtasks, $"/query /tn {task} /xml");
+                Assert.Fail($"Task not listed. schtasks /create said: {created}\nTasks found: " +
+                            string.Join(", ", items.Where(i => i.Source == StartupSource.ScheduledTask).Select(i => i.Key)) +
+                            $"\nIts XML: {single[..Math.Min(single.Length, 1500)]}");
+            }
             Assert.True(item.Enabled);
 
             await manager.SetEnabledAsync(item, false);
@@ -133,9 +141,14 @@ public class WindowsIntegrationTests
         Assert.True(space.Total > 0);
     }
 
-    private static async Task RunAsync(string exe, string args)
+    private static async Task<string> RunAsync(string exe, string args)
     {
-        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true })!;
+        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, args)
+        {
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
+        })!;
+        string output = await p.StandardOutput.ReadToEndAsync() + await p.StandardError.ReadToEndAsync();
         await p.WaitForExitAsync();
+        return output;
     }
 }

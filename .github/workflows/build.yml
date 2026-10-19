@@ -30,7 +30,10 @@ jobs:
       - name: Integration tests (real Windows APIs)
         run: dotnet test tests/Declutter.Windows.Tests -c Release --logger "console;verbosity=normal"
 
+      # The steps below still run when a test fails (for full feedback); the job fails either way
+      # and nothing is released.
       - name: Publish single-file executables
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: |
           foreach ($rid in 'win-x64', 'win-arm64') {
@@ -45,6 +48,7 @@ jobs:
           Copy-Item artifacts/win-arm64/Declutter.exe release/Declutter-ARM64.exe
 
       - name: Smoke test (launch the real app, open every page, take screenshots)
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: |
           $out = Join-Path $PWD 'artifacts/smoke'
@@ -64,6 +68,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload executables
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: Declutter-${{ env.VERSION }}
