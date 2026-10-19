@@ -159,13 +159,12 @@ internal sealed class SmokeTest
         var dpi = VisualTreeHelper.GetDpi(root);
         var bitmap = new RenderTargetBitmap((int)(root.ActualWidth * dpi.DpiScaleX), (int)(root.ActualHeight * dpi.DpiScaleY),
             dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
-        var visual = new DrawingVisual();
-        using (var dc = visual.RenderOpen())
-        {
+        // Background first, then the window content itself (a VisualBrush would rescale to the content's bounds).
+        var background = new DrawingVisual();
+        using (var dc = background.RenderOpen())
             dc.DrawRectangle(window.Background, null, new Rect(0, 0, root.ActualWidth, root.ActualHeight));
-            dc.DrawRectangle(new VisualBrush(root), null, new Rect(0, 0, root.ActualWidth, root.ActualHeight));
-        }
-        bitmap.Render(visual);
+        bitmap.Render(background);
+        bitmap.Render(root);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         await using var file = File.Create(Path.Combine(OutputDir, name + ".png"));

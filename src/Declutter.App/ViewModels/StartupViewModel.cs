@@ -104,8 +104,13 @@ public sealed class StartupViewModel : PageViewModel
     {
         int on = Items.Count(i => i.IsOn);
         int suggested = SuggestedCount;
-        Summary = $"{on} of {Items.Count} startup apps are turned on." +
-                  (suggested > 0 ? $" {suggested} of them are safe to turn off." : " Nothing obvious left to turn off.");
+        Summary = (Items.Count == 1 ? $"{on} of 1 startup app is turned on." : $"{on} of {Items.Count} startup apps are turned on.") +
+                  (suggested switch
+                  {
+                      0 => " Nothing obvious left to turn off.",
+                      1 => " 1 of them is safe to turn off.",
+                      _ => $" {suggested} of them are safe to turn off.",
+                  });
         OnPropertiesChanged(nameof(SuggestedCount), nameof(HasLockedItems));
         View.Refresh();
     }

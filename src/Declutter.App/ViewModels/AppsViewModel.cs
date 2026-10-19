@@ -118,7 +118,12 @@ public sealed class AppsViewModel : PageViewModel
         Apps.Clear();
         foreach (var app in apps) Apps.Add(new AppRowViewModel(app, this));
         int suggested = apps.Count(a => a.Advice == AppAdvice.Bloatware);
-        Summary = $"{apps.Count} apps installed." + (suggested > 0 ? $" {suggested} are preinstalled extras you could remove." : "");
+        Summary = $"{apps.Count} apps installed." + suggested switch
+        {
+            0 => "",
+            1 => " 1 is a preinstalled extra you could remove.",
+            _ => $" {suggested} are preinstalled extras you could remove.",
+        };
         Status = "";
         SelectionChanged();
         _ = MeasureSizesAsync();
