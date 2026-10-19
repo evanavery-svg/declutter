@@ -59,6 +59,17 @@ jobs:
           Write-Host "Exit code: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { exit 1 }
 
+      - name: Print screenshots (temporary, for review)
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          Get-ChildItem artifacts/smoke/*.png | ForEach-Object {
+            $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($_.FullName))
+            Write-Host "SHOT-BEGIN $($_.Name)"
+            for ($i = 0; $i -lt $b64.Length; $i += 8000) { Write-Host ("SHOT " + $b64.Substring($i, [Math]::Min(8000, $b64.Length - $i))) }
+            Write-Host "SHOT-END"
+          }
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
