@@ -55,6 +55,16 @@ internal sealed class SmokeTest
             foreach (var p in vm.Security.Passed) Log($"  passed: {p}");
             await RenderAsync(window, "2-security");
 
+            vm.CurrentPage = vm.Health;
+            await WaitAsync(vm.Health);
+            Check(vm.Health.HasRun, "Health check completed");
+            foreach (var card in vm.Health.Disks.Concat(vm.Health.Batteries)) Log($"  health: {card.Name}: {card.GradeLabel} ({card.Summary})");
+            Log($"  battery: {vm.Health.BatteryMessage}");
+            await RenderAsync(window, "2b-health");
+
+            await vm.Updates.CheckAsync(userAsked: true);
+            Log($"Update check: {(vm.Updates.IsAvailable ? vm.Updates.AvailableText : vm.Updates.Status)}");
+
             vm.CurrentPage = vm.Junk;
             await WaitAsync(vm.Junk);
             Check(vm.Junk.HasScanned, "Junk scan completed");

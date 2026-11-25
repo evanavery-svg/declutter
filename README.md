@@ -6,6 +6,7 @@ and it never deletes anything you haven't reviewed and confirmed.
 | Tool | What it does | Speeds up | Frees space |
 |---|---|:-:|:-:|
 | **Security check** | Looks for viruses (via Microsoft Defender), hidden crypto-miners, fake Windows programs and tampered settings | ✅ | |
+| **Health** | How your drives and battery are holding up: SSD wear, temperature, errors, battery capacity left | | |
 | **Junk Cleaner** | Temp files, browser caches, old Windows Update downloads, crash dumps, Recycle Bin | | ✅ |
 | **Startup** | Turns off apps that launch every time you sign in (Spotify, Steam, Edge pre-loading, updaters…) | ✅ | |
 | **Files** | Finds large files, old downloads, duplicate copies and your biggest folders | | ✅ |
@@ -58,6 +59,30 @@ Every finding explains what it means, how sure we are ("Needs attention" vs "Wor
 next steps: **Scan with Defender**, **Turn off at startup**, **Show file**, **Search online** or **End program**.
 Declutter never deletes a suspicious file itself; Defender quarantines it safely. Some checks (Defender
 exclusions, WMI) need administrator rights.
+
+## Drive & battery health
+
+Reads Windows' own health data, the same numbers Windows' storage and power tools use:
+
+- **Drives:** Windows' health verdict (which includes the drive's own failure prediction), how much of an
+  SSD's rated lifetime of writes is used up, temperature, hours powered on and uncorrectable errors. Each drive
+  gets a plain verdict (Good / Fair / Needs attention) with "back up now" advice when it matters. If Windows
+  runs from a spinning hard drive, you get the tip that an SSD is the biggest upgrade you can make.
+- **Battery:** how much of its original charge a full charge still holds, charge cycles, the charge right now,
+  and a button for Windows' detailed battery report.
+
+Wear, temperature and error counts need administrator rights; the rest works without.
+
+## Updates
+
+Declutter checks GitHub for a newer release once a day (and whenever you click **Check for updates** at the
+bottom of the sidebar). When there is one, an **Update now** button appears. Clicking it:
+
+1. downloads the version for your processor (x64 or ARM64), only ever from GitHub over HTTPS;
+2. checks the file's size and SHA-256 fingerprint against what GitHub publishes, and that it's a Windows program;
+3. swaps it in (the old copy is kept until the new one has started, and put back if anything fails), then restarts.
+
+Nothing installs without your click. If Declutter is in a folder it can't write to, it offers the download page instead.
 
 ## How it keeps you safe
 

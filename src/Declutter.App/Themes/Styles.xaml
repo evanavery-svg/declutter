@@ -11,6 +11,8 @@
     <mvvm:BoolToVisibilityConverter x:Key="Collapsed" Invert="True" />
     <mvvm:ToneToBrushConverter x:Key="ToneBackground" Part="Background" />
     <mvvm:ToneToBrushConverter x:Key="ToneForeground" Part="Foreground" />
+    <mvvm:AllTrueToVisibilityConverter x:Key="AllTrue" />
+    <mvvm:IsZeroConverter x:Key="IsZero" />
 
     <!-- ===== Text =================================================================================== -->
     <Style x:Key="PageTitle" TargetType="TextBlock">

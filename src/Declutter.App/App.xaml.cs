@@ -44,7 +44,15 @@ public partial class App : Application
         _services.Log.Write("App", $"Started {main.Version} ({(_services.IsElevated ? "administrator" : "standard user")})");
         window.Show();
 
-        if (Smoke != null) _ = Smoke.RunAsync(window, main);
+        if (Smoke != null)
+        {
+            _ = Smoke.RunAsync(window, main);
+            return;
+        }
+
+        if (e.Args.Contains("--updated"))
+            _services.Dialogs.Show("Declutter was updated", $"You're now on version {main.Updates.CurrentVersion.ToString(3)}.");
+        _ = main.Updates.StartupAsync();
     }
 
     /// <summary>Shows an unexpected error without crashing, and logs it.</summary>

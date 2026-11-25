@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Text;
-using System.Text.Json;
 using Declutter.Core.Safety;
 using Declutter.Core.Security;
 using Declutter.Core.Startup;
@@ -157,56 +155,24 @@ public sealed class SecurityCollector(StartupManager startup, KnownFolders folde
         var existing = paths.Where(File.Exists).ToList();
         if (existing.Count == 0) return map;
 
-        string input = Path.Combine(Path.GetTempPath(), $"declutter-sig-{Guid.NewGuid():N}.txt");
-        string output = Path.ChangeExtension(input, ".json");
-        try
-        {
-            await File.WriteAllLinesAsync(input, existing, new UTF8Encoding(false), ct);
-            string script =
-                "$ErrorActionPreference='SilentlyContinue';" +
-                $"$r = foreach ($p in [IO.File]::ReadAllLines('{input.Replace("'", "''")}')) {{" +
-                "  $s = Get-AuthenticodeSignature -LiteralPath $p;" +
-                "  [pscustomobject]@{ P = $p; S = $(if ($s) { [string]$s.Status } else { 'UnknownError' }); C = $(if ($s.SignerCertificate) { $s.SignerCertificate.Subject } else { $null }) }" +
-                "};" +
-                $"ConvertTo-Json -InputObject @($r) -Compress | Set-Content -LiteralPath '{output.Replace("'", "''")}' -Encoding UTF8";
-            string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+        const string script =
+            "$r = foreach ($p in [IO.File]::ReadAllLines($in)) {" +
+            "  $s = Get-AuthenticodeSignature -LiteralPath $p;" +
+            "  [pscustomobject]@{ P = $p; S = $(if ($s) { [string]$s.Status } else { 'UnknownError' }); C = $(if ($s.SignerCertificate) { $s.SignerCertificate.Subject } else { $null }) }" +
+            "}";
+        using var doc = await PowerShellJson.RunAsync(script, existing, TimeSpan.FromSeconds(90), ct);
+        if (doc == null) return map; // signatures are extra evidence; without them the checks simply stay quieter
 
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeout.CancelAfter(TimeSpan.FromSeconds(90));
-            await ProcessRunner.RunAsync(PowerShellPath, $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}", timeout.Token);
-
-            if (!File.Exists(output)) return map;
-            using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(output, ct));
-            foreach (var e in doc.RootElement.EnumerateArray())
-            {
-                string? path = e.TryGetProperty("P", out var p) ? p.GetString() : null;
-                string? status = e.TryGetProperty("S", out var s) ? s.GetString() : null;
-                string? signer = e.TryGetProperty("C", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
-                if (path != null && !string.IsNullOrEmpty(status)) map[path] = new SignatureInfo(status, Parsers.SignerName(signer));
-            }
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or InvalidOperationException or System.ComponentModel.Win32Exception
-                                       or OperationCanceledException && !ct.IsCancellationRequested)
+        foreach (var e in doc.RootElement.EnumerateArray())
         {
-            // Signatures are extra evidence; without them the checks simply stay quieter.
-        }
-        finally
-        {
-            TryDelete(input);
-            TryDelete(output);
+            string? path = e.Str("P"), status = e.Str("S");
+            if (path != null && !string.IsNullOrEmpty(status)) map[path] = new SignatureInfo(status, Parsers.SignerName(e.Str("C")));
         }
         return map;
     }
 
     internal Task<IReadOnlyDictionary<string, SignatureInfo>> VerifyForTestsAsync(IReadOnlyList<string> paths) =>
         VerifySignaturesAsync(paths, CancellationToken.None);
-
-    private static string PowerShellPath => Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
-
-    private static void TryDelete(string path)
-    {
-        try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
 
     // --- Defender & Security Center -----------------------------------------------------------------
 

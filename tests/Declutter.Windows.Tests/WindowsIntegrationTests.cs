@@ -184,6 +184,50 @@ public class WindowsIntegrationTests(Xunit.Abstractions.ITestOutputHelper output
     }
 
     [Fact]
+    public async Task Health_ReadsTheDrives()
+    {
+        var snapshot = await new Health.HealthCollector(WindowsEnvironment.IsElevated).CollectAsync(CancellationToken.None);
+
+        foreach (var d in snapshot.Disks)
+            output.WriteLine($"{d.Name}: {d.MediaType}/{d.BusType} {d.SizeBytes} health={d.HealthStatus} wear={d.WearPercent} temp={d.TemperatureC} system={d.IsSystemDisk}");
+        output.WriteLine($"battery: {snapshot.Battery}, reports: {snapshot.Batteries.Count}");
+
+        Assert.NotEmpty(snapshot.Disks);
+        Assert.All(snapshot.Disks, d => Assert.False(string.IsNullOrWhiteSpace(d.Name)));
+        Assert.Contains(snapshot.Disks, d => d.SizeBytes > 0);
+        Assert.All(snapshot.Disks, d => Assert.NotNull(Core.Health.HealthAnalyzer.AssessDisk(d).Summary));
+    }
+
+    [Fact]
+    public async Task Update_TheRealLatestReleaseDownloadsAndVerifies()
+    {
+        using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        var updater = new Core.Updates.Updater(http);
+        var release = await updater.GetLatestAsync(CancellationToken.None);
+        if (release == null)
+        {
+            output.WriteLine("GitHub didn't answer (rate limit or no release yet); nothing to verify.");
+            return;
+        }
+
+        var asset = Core.Updates.Releases.PickAsset(release, System.Runtime.InteropServices.Architecture.X64);
+        Assert.NotNull(asset);
+        output.WriteLine($"{release.Tag}: {asset.Name} {asset.Size} bytes, sha256={asset.Sha256 ?? "(not published)"}");
+
+        string file = Path.Combine(Folders.SafeTempDir!, $"declutter-update-test-{Guid.NewGuid():N}.exe");
+        try
+        {
+            // Follows GitHub's redirect to its download CDN, so this also proves that host is on the trusted list.
+            await updater.DownloadAsync(asset, file, null, CancellationToken.None);
+            Assert.Equal(asset.Size, new FileInfo(file).Length);
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
+    [Fact]
     public void DriveSpace_IsReported()
     {
         var space = SystemTools.GetDriveSpace(Folders.SystemDrive);

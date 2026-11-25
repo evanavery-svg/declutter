@@ -49,3 +49,20 @@ public sealed class ToneToBrushConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
 }
+
+/// <summary>Visible only when every bound value is true.</summary>
+public sealed class AllTrueToVisibilityConverter : IMultiValueConverter
+{
+    public object Convert(object?[] values, Type targetType, object? parameter, CultureInfo culture) =>
+        values.All(v => v is true) ? Visibility.Visible : Visibility.Collapsed;
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>True when a number is zero (e.g. an empty list's Count).</summary>
+public sealed class IsZeroConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is 0;
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}
