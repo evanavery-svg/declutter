@@ -54,7 +54,10 @@ public static class HealthAnalyzer
 
         if (d.TemperatureC is int t && t > 0)
         {
-            int limit = d.TemperatureMaxC is int max && max > 0 ? max : d.IsSsd ? 70 : 55;
+            // Some drives report TemperatureMax as a rated limit, others as the hottest they've ever been.
+            // Only a realistic value is trusted as a limit, so a drive at its own (cool) record isn't called hot.
+            int fallback = d.IsSsd ? 70 : 55;
+            int limit = d.TemperatureMaxC is int max && max >= 60 ? max : fallback;
             if (t >= limit)
             {
                 Worse(HealthGrade.Fair);
@@ -79,7 +82,8 @@ public static class HealthAnalyzer
         if (d.IsSystemDisk && d.IsHdd)
             notes.Add(new(NoteKind.Info, "Windows runs from a spinning hard drive. Swapping it for an SSD is the single biggest speed-up most older PCs can get."));
 
-        bool hasData = d.HealthStatus.Length > 0 || d.WearPercent != null || d.TemperatureC is > 0;
+        bool knownStatus = d.HealthStatus.ToLowerInvariant() is "healthy" or "warning" or "unhealthy"; // Windows also says "Unknown"
+        bool hasData = knownStatus || d.WearPercent != null || d.TemperatureC is > 0;
         if (!hasData) grade = HealthGrade.Unknown;
 
         string kind = d.IsSsd ? (d.BusType.Equals("NVMe", StringComparison.OrdinalIgnoreCase) ? "NVMe SSD" : "SSD") : d.IsHdd ? "Hard drive" : "Drive";

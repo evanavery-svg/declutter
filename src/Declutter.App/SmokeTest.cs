@@ -65,6 +65,15 @@ internal sealed class SmokeTest
             await vm.Updates.CheckAsync(userAsked: true);
             Log($"Update check: {(vm.Updates.IsAvailable ? vm.Updates.AvailableText : vm.Updates.Status)}");
 
+            // Self-update renames the running exe out of the way. Prove Windows allows that for this very build.
+            if (Environment.ProcessPath is { } exe && exe.EndsWith("Declutter.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                string probe = exe + ".renametest";
+                File.Move(exe, probe);
+                File.Move(probe, exe);
+                Check(File.Exists(exe), "The running Declutter.exe can be renamed (needed for self-update)");
+            }
+
             vm.CurrentPage = vm.Junk;
             await WaitAsync(vm.Junk);
             Check(vm.Junk.HasScanned, "Junk scan completed");

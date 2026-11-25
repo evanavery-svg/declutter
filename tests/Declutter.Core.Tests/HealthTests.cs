@@ -61,6 +61,27 @@ public class HealthTests
     }
 
     [Fact]
+    public void UnknownStatus_WithNoOtherData_IsNotCalledGood() =>
+        Assert.Equal(HealthGrade.Unknown, HealthAnalyzer.AssessDisk(new DiskInfo { Name = "USB stick", HealthStatus = "Unknown" }).Grade);
+
+    [Fact]
+    public void TemperatureMax_ThatIsJustTheHottestRecorded_IsNotUsedAsALimit()
+    {
+        // Drive at 41°C whose "max" is its own record of 41°C: normal, not hot.
+        var a = HealthAnalyzer.AssessDisk(Ssd(temp: 41) with { TemperatureMaxC = 41 });
+        Assert.Equal(HealthGrade.Good, a.Grade);
+        Assert.Contains(a.Notes, n => n.Text.Contains("41°C, which is normal"));
+    }
+
+    [Fact]
+    public void TemperatureMax_ThatIsARealLimit_IsUsed()
+    {
+        var a = HealthAnalyzer.AssessDisk(Ssd(temp: 66) with { TemperatureMaxC = 65 });
+        Assert.Equal(HealthGrade.Fair, a.Grade);
+        Assert.Contains(a.Notes, n => n.Text.Contains("limit 65°C"));
+    }
+
+    [Fact]
     public void NoData_IsUnknown() =>
         Assert.Equal(HealthGrade.Unknown, HealthAnalyzer.AssessDisk(new DiskInfo { Name = "Virtual Disk" }).Grade);
 

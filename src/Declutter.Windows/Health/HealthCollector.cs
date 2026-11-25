@@ -23,7 +23,7 @@ public sealed class HealthCollector(bool isElevated)
     // Get-PhysicalDisk gives Windows' verdict (it includes the drive's own SMART failure prediction);
     // Get-StorageReliabilityCounter adds wear, temperature, hours and error counts (admin only).
     private const string DiskScript =
-        "$sys = $null; try { $sys = (Get-Partition -DriveLetter $env:SystemDrive.Substring(0,1) -ErrorAction Stop).DiskNumber } catch {};" +
+        "$sys = $null; try { $sys = (Get-Partition -DriveLetter ($env:SystemDrive.Substring(0,1)) -ErrorAction Stop).DiskNumber } catch {};" +
         "$r = foreach ($d in Get-PhysicalDisk) {" +
         "  $c = $null; try { $c = $d | Get-StorageReliabilityCounter -ErrorAction Stop } catch {};" +
         "  [pscustomobject]@{" +

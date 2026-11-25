@@ -75,10 +75,11 @@ public sealed class UpdateViewModel : ObservableObject
         {
             if (File.Exists(StampFile) &&
                 long.TryParse(await File.ReadAllTextAsync(StampFile), NumberStyles.Integer, CultureInfo.InvariantCulture, out long ticks) &&
+                ticks > 0 && ticks <= DateTime.UtcNow.Ticks &&
                 DateTime.UtcNow - new DateTime(ticks, DateTimeKind.Utc) < TimeSpan.FromDays(1))
                 return;
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
         }
 
@@ -94,14 +95,7 @@ public sealed class UpdateViewModel : ObservableObject
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             _latest = await _updater.GetLatestAsync(timeout.Token);
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(StampFile)!);
-                await File.WriteAllTextAsync(StampFile, DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture));
-            }
-            catch (IOException)
-            {
-            }
+            if (_latest != null) await RememberCheckAsync(); // a failed check is retried next start, not tomorrow
 
             if (userAsked)
                 Status = _latest == null ? "Couldn't reach GitHub to check for updates."
@@ -117,6 +111,18 @@ public sealed class UpdateViewModel : ObservableObject
         {
             IsWorking = false;
             OnPropertiesChanged(nameof(IsAvailable), nameof(AvailableText));
+        }
+    }
+
+    private static async Task RememberCheckAsync()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(StampFile)!);
+            await File.WriteAllTextAsync(StampFile, DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
         }
     }
 
@@ -143,6 +149,8 @@ public sealed class UpdateViewModel : ObservableObject
         IsWorking = true;
         Progress = 0;
         string download = SelfReplace.DownloadPathFor(exe);
+        bool swapped = false;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(15)); // never hang on a stalled connection
         try
         {
             Status = "Downloading…";
@@ -151,22 +159,36 @@ public sealed class UpdateViewModel : ObservableObject
                 Progress = p;
                 Status = $"Downloading… {p:P0}";
             });
-            await _updater.DownloadAsync(asset, download, progress, CancellationToken.None);
+            await _updater.DownloadAsync(asset, download, progress, timeout.Token);
 
             Status = "Installing…";
             SelfReplace.Swap(exe, download);
+            swapped = true;
             _services.Log.Write("Update", $"Updated {CurrentVersion.ToString(3)} → {_latest.Version.ToString(3)}; restarting");
 
             Process.Start(new ProcessStartInfo(exe, "--updated") { UseShellExecute = true });
             Application.Current.Shutdown();
         }
-        catch (Exception ex) when (ex is UpdateException or HttpRequestException or IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        catch (Exception ex) when (swapped)
+        {
+            // The new version is installed; only the automatic restart failed.
+            _services.Log.Write("Update", "Installed, but couldn't restart automatically: " + ex.Message);
+            Status = null;
+            _services.Dialogs.Show("Update installed",
+                $"Version {_latest.Version.ToString(3)} is installed, but Declutter couldn't restart itself. Close Declutter and open it again to use the new version.");
+        }
+        catch (Exception ex) when (ex is UpdateException or HttpRequestException or IOException or UnauthorizedAccessException
+                                       or System.ComponentModel.Win32Exception or OperationCanceledException)
         {
             _services.Log.Write("Update", "Update failed: " + ex.Message);
             Status = null;
-            string reason = ex is UnauthorizedAccessException or IOException
-                ? "Windows didn't allow Declutter to replace its own file (it may be in a protected folder)."
-                : ex.Message;
+            string reason = ex switch
+            {
+                OperationCanceledException => "The download took too long and was stopped.",
+                HttpRequestException => "The download from GitHub failed. Check your internet connection.",
+                UnauthorizedAccessException or IOException => "Windows didn't allow Declutter to replace its own file (it may be in a protected folder).",
+                _ => ex.Message,
+            };
             if (_services.Dialogs.Confirm("The update didn't finish", reason + " Nothing was changed. You can download the new version yourself instead.", "Open download page"))
                 SystemTools.Open(_latest.PageUrl);
         }

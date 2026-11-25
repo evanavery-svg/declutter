@@ -13,6 +13,7 @@ public sealed class HealthViewModel : PageViewModel
     private bool _hasRun;
     private bool _countersNeedAdmin;
     private string? _batteryMessage;
+    private bool _hasBattery;
 
     public HealthViewModel(AppServices services) : base(services)
     {
@@ -48,7 +49,12 @@ public sealed class HealthViewModel : PageViewModel
         private set => Set(ref _batteryMessage, value);
     }
 
-    public bool HasBattery => Batteries.Count > 0;
+    /// <summary>True when the PC has a battery, even if Windows gave no capacity details for it.</summary>
+    public bool HasBattery
+    {
+        get => _hasBattery;
+        private set => Set(ref _hasBattery, value);
+    }
 
     protected override Task OnFirstVisitAsync() => RefreshAsync();
 
@@ -83,9 +89,9 @@ public sealed class HealthViewModel : PageViewModel
             BatteryMessage = "Windows didn't report details for this battery. The full battery report may have more.";
 
         CountersNeedAdmin = snapshot.CountersNeedAdmin;
+        HasBattery = snapshot.Battery != null || Batteries.Count > 0;
         HasRun = true;
         Status = "";
-        OnPropertyChanged(nameof(HasBattery));
         Services.Log.Write("Health", $"Checked {Disks.Count} drive(s) and {Batteries.Count} battery(ies): " +
                                      string.Join("; ", Disks.Concat(Batteries).Select(c => $"{c.Name}: {c.GradeLabel}")));
     });
