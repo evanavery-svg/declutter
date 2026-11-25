@@ -74,20 +74,40 @@ jobs:
           name: Declutter-${{ env.VERSION }}
           path: release/
 
+      # Published with GitHub's own CLI: upload to a hidden draft first, publish only once both files are
+      # in, retry on GitHub hiccups. A half-made release is never visible (or offered to the updater).
       - name: Publish release
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.VERSION }}
-          name: Declutter ${{ env.VERSION }}
-          target_commitish: ${{ github.sha }}
-          files: |
-            release/Declutter.exe
-            release/Declutter-ARM64.exe
-          body: |
-            **Download `Declutter.exe`** (most laptops), or `Declutter-ARM64.exe` for Snapdragon / ARM laptops.
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $notes = @'
+          **Download `Declutter.exe`** (most laptops), or `Declutter-ARM64.exe` for Snapdragon / ARM laptops.
 
-            It's a single file with nothing to install. Double-click it and allow the administrator prompt.
-            Windows may show "Windows protected your PC" because the app isn't code-signed: click **More info → Run anyway**.
+          It's a single file with nothing to install. Double-click it and allow the administrator prompt.
+          Windows may show "Windows protected your PC" because the app isn't code-signed: click **More info → Run anyway**.
 
-            See the [README](https://github.com/${{ github.repository }}#readme) for what each tool does and how it keeps your files safe.
+          Already using Declutter? It offers this update itself (bottom of the sidebar).
+
+          See the [README](https://github.com/REPO#readme) for what each tool does and how it keeps your files safe.
+          '@
+          Set-Content -Path release-notes.md -Value $notes.Replace('REPO', $env:GH_REPO) -Encoding utf8
+
+          $tag = "v$env:VERSION"
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            gh release view $tag *> $null
+            if ($LASTEXITCODE -ne 0) {
+              gh release create $tag --draft --target $env:GITHUB_SHA --title "Declutter $env:VERSION" --notes-file release-notes.md
+            }
+            gh release upload $tag release/Declutter.exe release/Declutter-ARM64.exe --clobber
+            if ($LASTEXITCODE -eq 0) {
+              gh release edit $tag --draft=false --latest
+              if ($LASTEXITCODE -eq 0) { Write-Host "Published $tag"; exit 0 }
+            }
+            Write-Warning "Attempt $attempt failed; retrying"
+            Start-Sleep -Seconds (20 * $attempt)
+          }
+          Write-Error "Couldn't publish $tag"
+          exit 1
