@@ -1,34 +1,138 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 using Microsoft.Win32;
 
 namespace Declutter.App;
 
-/// <summary>Follows the Windows light/dark app setting.</summary>
+public enum ThemeMode
+{
+    System,
+    Light,
+    Dark,
+}
+
+/// <summary>
+/// Light, dark and Windows High Contrast colours. The app keeps one set of brushes and recolours them in
+/// place when the theme changes, so everything on screen (including colours picked by converters) updates
+/// at once without reopening anything.
+/// </summary>
 public static class WindowTheme
 {
-    public static bool IsDark { get; private set; }
+    private static ResourceDictionary? _colors;
 
-    public static void Load(Application app)
+    public static ThemeMode Mode { get; private set; }
+    public static bool IsDark { get; private set; }
+    public static bool IsHighContrast => SystemParameters.HighContrast;
+
+    public static void Load(Application app, ThemeMode mode)
     {
-        IsDark = SystemUsesDarkMode();
-        app.Resources.MergedDictionaries.Add(new ResourceDictionary
-        {
-            Source = new Uri(IsDark ? "Themes/Dark.xaml" : "Themes/Light.xaml", UriKind.Relative),
-        });
+        Mode = mode;
+        _colors = Modifiable(BuildColors(out bool dark));
+        IsDark = dark;
+        app.Resources.MergedDictionaries.Add(_colors);
         app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Themes/Styles.xaml", UriKind.Relative) });
+
+        // Follow Windows when it switches light/dark or High Contrast while Declutter is open.
+        SystemEvents.UserPreferenceChanged += (_, e) =>
+        {
+            if (e.Category is UserPreferenceCategory.General or UserPreferenceCategory.Accessibility or UserPreferenceCategory.Color)
+                app.Dispatcher.BeginInvoke(Refresh);
+        };
+        SystemParameters.StaticPropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SystemParameters.HighContrast)) app.Dispatcher.BeginInvoke(Refresh);
+        };
     }
 
-    /// <summary>Gives a window a dark title bar in dark mode (Windows 10 2004+ / Windows 11).</summary>
+    /// <summary>Switches theme immediately (Settings page).</summary>
+    public static void SetMode(ThemeMode mode)
+    {
+        Mode = mode;
+        Refresh();
+    }
+
+    private static void Refresh()
+    {
+        if (_colors == null) return;
+        var fresh = BuildColors(out bool dark);
+        IsDark = dark;
+        foreach (var key in fresh.Keys)
+        {
+            if (_colors[key] is SolidColorBrush target && fresh[key] is SolidColorBrush source)
+                target.Color = source.Color;
+        }
+        foreach (Window w in Application.Current.Windows) Apply(w);
+    }
+
+    private static ResourceDictionary BuildColors(out bool dark)
+    {
+        if (SystemParameters.HighContrast)
+        {
+            dark = IsDarkColor(SystemColors.WindowColor);
+            return HighContrastColors();
+        }
+        dark = Mode switch
+        {
+            ThemeMode.Light => false,
+            ThemeMode.Dark => true,
+            _ => SystemUsesDarkMode(),
+        };
+        return new ResourceDictionary { Source = new Uri(dark ? "Themes/Dark.xaml" : "Themes/Light.xaml", UriKind.Relative) };
+    }
+
+    /// <summary>Brushes loaded from XAML may be frozen; swap in clones that can be recoloured later.</summary>
+    private static ResourceDictionary Modifiable(ResourceDictionary source)
+    {
+        var copy = new ResourceDictionary();
+        foreach (var key in source.Keys)
+        {
+            object? value = source[key];
+            copy[key] = value is SolidColorBrush { IsFrozen: true } b ? b.Clone() : value;
+        }
+        return copy;
+    }
+
+    /// <summary>
+    /// High Contrast: every surface uses the user's chosen window colours, text uses their text colour, and
+    /// highlights use their highlight colours. Meaning is carried by labels, never by colour alone.
+    /// </summary>
+    private static ResourceDictionary HighContrastColors()
+    {
+        var d = new ResourceDictionary();
+        void Set(string key, Color c) => d[key] = new SolidColorBrush(c);
+
+        Color window = SystemColors.WindowColor, text = SystemColors.WindowTextColor;
+        Color highlight = SystemColors.HighlightColor, onHighlight = SystemColors.HighlightTextColor;
+        foreach (var k in new[] { "Brush.Window", "Brush.Nav", "Brush.Card", "Brush.CardHover", "Brush.Control", "Brush.ControlHover",
+                     "Brush.ControlPressed", "Brush.Input", "Brush.Track", "Brush.NavSelected" })
+            Set(k, window);
+        foreach (var k in new[] { "Brush.Border", "Brush.ControlBorder", "Brush.Text", "Brush.TextSecondary", "Brush.TextTertiary", "Brush.ScrollThumb" })
+            Set(k, text);
+        foreach (var k in new[] { "Brush.Accent", "Brush.AccentHover", "Brush.AccentPressed", "Brush.Danger", "Brush.DangerHover" })
+            Set(k, highlight);
+        Set("Brush.OnAccent", onHighlight);
+        Set("Brush.OnDanger", onHighlight);
+        Set("Brush.Disabled", SystemColors.GrayTextColor);
+        foreach (var tone in new[] { "Neutral", "Info", "Good", "Caution", "Danger" })
+        {
+            Set($"Tone.{tone}.Background", window);
+            Set($"Tone.{tone}.Foreground", text);
+        }
+        return d;
+    }
+
+    /// <summary>Gives a window a dark title bar in dark mode (Windows 10 2004+ / Windows 11), or a light one.</summary>
     public static void Apply(Window window)
     {
-        if (!IsDark) return;
         IntPtr hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd == IntPtr.Zero) return;
-        int on = 1;
+        int on = IsDark ? 1 : 0;
         _ = DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, ref on, sizeof(int));
     }
+
+    private static bool IsDarkColor(Color c) => (c.R * 299 + c.G * 587 + c.B * 114) / 1000 < 128;
 
     private static bool SystemUsesDarkMode()
     {

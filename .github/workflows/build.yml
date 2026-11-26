@@ -47,17 +47,22 @@ jobs:
           Copy-Item artifacts/win-x64/Declutter.exe release/Declutter.exe
           Copy-Item artifacts/win-arm64/Declutter.exe release/Declutter-ARM64.exe
 
-      - name: Smoke test (launch the real app, open every page, take screenshots)
+      - name: Smoke test (launch the real app in light and dark mode, open every page, check text contrast)
         if: ${{ !cancelled() }}
         shell: pwsh
         run: |
-          $out = Join-Path $PWD 'artifacts/smoke'
-          $p = Start-Process -FilePath 'release/Declutter.exe' -ArgumentList '--smoke-test', "`"$out`"" -PassThru
-          $null = $p.Handle  # keeps ExitCode available after exit
-          if (-not $p.WaitForExit(600000)) { $p.Kill(); Write-Error 'Smoke test timed out'; exit 1 }
-          if (Test-Path "$out/smoke-test.log") { Get-Content "$out/smoke-test.log" } else { Write-Warning 'No smoke-test log was written' }
-          Write-Host "Exit code: $($p.ExitCode)"
-          if ($p.ExitCode -ne 0) { exit 1 }
+          $failed = $false
+          foreach ($theme in 'light', 'dark') {
+            $out = Join-Path $PWD "artifacts/smoke/$theme"
+            Write-Host "=== $theme theme ==="
+            $p = Start-Process -FilePath 'release/Declutter.exe' -ArgumentList '--smoke-test', "`"$out`"", '--theme', $theme -PassThru
+            $null = $p.Handle  # keeps ExitCode available after exit
+            if (-not $p.WaitForExit(600000)) { $p.Kill(); Write-Error "Smoke test ($theme) timed out"; exit 1 }
+            if (Test-Path "$out/smoke-test.log") { Get-Content "$out/smoke-test.log" } else { Write-Warning 'No smoke-test log was written' }
+            Write-Host "Exit code ($theme): $($p.ExitCode)"
+            if ($p.ExitCode -ne 0) { $failed = $true }
+          }
+          if ($failed) { exit 1 }
 
       - name: Upload screenshots
         if: always()

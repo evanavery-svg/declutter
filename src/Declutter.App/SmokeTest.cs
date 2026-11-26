@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -197,6 +198,78 @@ internal sealed class SmokeTest
         await using var file = File.Create(Path.Combine(OutputDir, name + ".png"));
         encoder.Save(file);
         Log("screenshot: " + name);
+        CheckContrast(window, name);
+    }
+
+    /// <summary>
+    /// Fails the test for any visible text that's hard to read against what's behind it (WCAG contrast
+    /// below 3:1), e.g. black text left on a dark background. Runs on every screenshot, in both themes.
+    /// </summary>
+    private void CheckContrast(Window window, string page)
+    {
+        if (window.Content is not DependencyObject root) return;
+        var reported = new HashSet<string>();
+        foreach (var tb in Descendants(root).OfType<TextBlock>())
+        {
+            if (!tb.IsVisible || !tb.IsEnabled || tb.ActualWidth < 1 || string.IsNullOrWhiteSpace(tb.Text)) continue;
+            if (tb.Foreground is not SolidColorBrush fg || EffectiveOpacity(tb) < 0.9) continue;
+            var bg = BackgroundBehind(tb, window);
+            if (bg == null) continue;
+
+            double ratio = ContrastRatio(fg.Color, bg.Value);
+            string text = tb.Text.Length > 40 ? tb.Text[..40] + "…" : tb.Text;
+            if (ratio < 3.0 && reported.Add(text))
+                Fail($"{page}: hard to read \"{text}\": {fg.Color} on {bg.Value}, contrast {ratio:0.0}:1");
+        }
+        Log($"contrast checked: {page}");
+    }
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
+    {
+        int n = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < n; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            yield return child;
+            foreach (var d in Descendants(child)) yield return d;
+        }
+    }
+
+    private static double EffectiveOpacity(DependencyObject element)
+    {
+        double opacity = 1;
+        for (var e = element; e != null; e = VisualTreeHelper.GetParent(e))
+            if (e is UIElement u) opacity *= u.Opacity;
+        return opacity;
+    }
+
+    /// <summary>The first solid, mostly opaque background found walking up from an element.</summary>
+    private static Color? BackgroundBehind(DependencyObject element, Window window)
+    {
+        for (var e = VisualTreeHelper.GetParent(element); e != null; e = VisualTreeHelper.GetParent(e))
+        {
+            Brush? brush = e switch
+            {
+                Border b => b.Background,
+                Panel p => p.Background,
+                Control c => c.Background,
+                _ => null,
+            };
+            if (brush is SolidColorBrush { Color.A: > 200 } solid) return solid.Color;
+        }
+        return (window.Background as SolidColorBrush)?.Color;
+    }
+
+    internal static double ContrastRatio(Color a, Color b)
+    {
+        static double Channel(byte c)
+        {
+            double v = c / 255.0;
+            return v <= 0.03928 ? v / 12.92 : Math.Pow((v + 0.055) / 1.055, 2.4);
+        }
+        static double Luminance(Color c) => 0.2126 * Channel(c.R) + 0.7152 * Channel(c.G) + 0.0722 * Channel(c.B);
+        double la = Luminance(a), lb = Luminance(b);
+        return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
     }
 
     private sealed class BindingErrorListener : TraceListener

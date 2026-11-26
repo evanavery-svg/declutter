@@ -14,7 +14,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        WindowTheme.Load(this);
+        WindowTheme.Load(this, ThemeFromArgs(e.Args) ?? ThemeMode.System);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += (_, args) =>
         {
@@ -53,6 +53,13 @@ public partial class App : Application
         if (e.Args.Contains("--updated"))
             _services.Dialogs.Show("Declutter was updated", $"You're now on version {main.Updates.CurrentVersion.ToString(3)}.");
         _ = main.Updates.StartupAsync();
+    }
+
+    /// <summary>"--theme dark" / "--theme light" forces a theme (used by CI to test both).</summary>
+    private static ThemeMode? ThemeFromArgs(string[] args)
+    {
+        int i = Array.IndexOf(args, "--theme");
+        return i >= 0 && i + 1 < args.Length && Enum.TryParse<ThemeMode>(args[i + 1], ignoreCase: true, out var mode) ? mode : null;
     }
 
     /// <summary>Shows an unexpected error without crashing, and logs it.</summary>
