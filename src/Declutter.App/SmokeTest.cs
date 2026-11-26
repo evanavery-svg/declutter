@@ -130,6 +130,14 @@ internal sealed class SmokeTest
             await RenderAsync(dialog, "9-dialog");
             dialog.Close();
 
+            vm.CurrentPage = vm.Speed;
+            await WaitAsync(vm.Speed);
+            Check(vm.Speed.HasRun, "Speed check completed");
+            Log($"Speed: {vm.Speed.BootHeadline} ({vm.Speed.BootVerdict}); {vm.Speed.ServiceRows.Count} app services, {vm.Speed.SuggestedCount} suggested");
+            foreach (var c in vm.Speed.Culprits) Log($"  slowed by {c.Name} ({c.Kind}) +{c.AverageSeconds:0.0}s x{c.Times}");
+            foreach (var n in vm.Speed.Hardware) Log($"  hardware: {n.Text}");
+            await RenderAsync(window, "10b-speed");
+
             vm.CurrentPage = vm.ThisPc;
             await WaitAsync(vm.ThisPc);
             Check(vm.ThisPc.Rows.Count >= 3, "This PC details were read");
@@ -150,6 +158,9 @@ internal sealed class SmokeTest
             WindowTheme.SetMode(WindowTheme.IsDark ? ThemeMode.Light : ThemeMode.Dark);
             await RenderAsync(window, "13-settings-switched-theme");
             WindowTheme.SetMode(before);
+            vm.CurrentPage = vm.Junk;
+            await RenderAsync(window, "14-after-theme-switch");
+            Check(window.PageHost.Content == vm.Junk, "Navigation still works after a theme switch");
 
             vm.CurrentPage = vm.Home;
             await RenderAsync(window, "10-home-after");

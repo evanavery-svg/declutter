@@ -15,6 +15,14 @@ public partial class MainWindow : Window
         Height = Math.Min(Height, work.Height * 0.94);
         MinWidth = Math.Min(MinWidth, work.Width);
         MinHeight = Math.Min(MinHeight, work.Height);
+        // Badge colours are picked in code; rebuild the visible page so they follow a theme change.
+        WindowTheme.Changed += (_, _) =>
+        {
+            // SetCurrentValue (not assignment) keeps the {Binding CurrentPage} intact.
+            object page = PageHost.Content;
+            PageHost.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, null);
+            PageHost.SetCurrentValue(System.Windows.Controls.ContentControl.ContentProperty, page);
+        };
         SourceInitialized += (_, _) =>
         {
             Handle = new WindowInteropHelper(this).Handle;

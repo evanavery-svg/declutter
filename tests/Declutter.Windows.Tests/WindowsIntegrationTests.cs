@@ -228,6 +228,56 @@ public class WindowsIntegrationTests(Xunit.Abstractions.ITestOutputHelper output
     }
 
     [Fact]
+    public async Task Speed_ReadsBootsAndServices_AndServiceChangesAreReversible()
+    {
+        if (!WindowsEnvironment.IsElevated) return;
+        string data = Path.Combine(Folders.SafeTempDir!, "declutter-speed-" + Guid.NewGuid().ToString("N"));
+        var collector = new Speed.SpeedCollector(data, Folders.WindowsDir, NullActivityLog.Instance, true);
+
+        var boots = await collector.ReadBootsAsync(CancellationToken.None);
+        output.WriteLine($"boot: {boots?.Verdict} typical={boots?.TypicalSeconds} recent={boots?.Recent.Count} culprits={boots?.Culprits.Count}");
+        var services = await collector.ReadServicesAsync(CancellationToken.None);
+        foreach (var s in services.Take(15)) output.WriteLine($"{s.Name} | {s.DisplayName} | {s.StartMode} | {s.Company} | {Core.Speed.ServiceAdvisor.Advise(s).Advice}");
+        Assert.All(services, s => Assert.False(Core.Util.PathUtil.IsSameOrUnder(s.Path!, Folders.WindowsDir)));
+
+        // A throwaway service (never started) to prove Set to Manual and Undo really change Windows' setting.
+        const string name = "DeclutterTestService";
+        string sc = Path.Combine(Environment.SystemDirectory, "sc.exe");
+        await RunAsync(sc, $"create {name} binPath= \"{Path.Combine(Environment.SystemDirectory, "notepad.exe")}\" start= auto");
+        try
+        {
+            var svc = new Core.Speed.ServiceInfo { Name = name, DisplayName = name, StartMode = "Auto" };
+            await collector.SetManualAsync(svc, CancellationToken.None);
+            Assert.Equal("Manual", StartMode(name));
+            Assert.True(collector.WasChangedByDeclutter(name));
+
+            await collector.UndoAsync(svc, CancellationToken.None);
+            Assert.Equal("Auto", StartMode(name));
+            Assert.False(collector.WasChangedByDeclutter(name));
+        }
+        finally
+        {
+            await RunAsync(sc, $"delete {name}");
+            Directory.Delete(data, true);
+        }
+    }
+
+    private static string? StartMode(string service) =>
+        Security.Wmi.Query(@"root\cimv2", $"SELECT StartMode FROM Win32_Service WHERE Name = '{service}'")?.FirstOrDefault() is { } row
+            ? Security.Wmi.Str(row, "StartMode") : null;
+
+    [Fact]
+    public async Task ThisPc_ReadsTheBasics()
+    {
+        var info = await Health.SystemInfoCollector.CollectAsync(CancellationToken.None);
+        output.WriteLine($"{info.Manufacturer} {info.Model} | {info.WindowsName} {info.WindowsVersion} {info.WindowsBuild} | {info.Processor} | {info.MemoryBytes}");
+        Assert.NotNull(info.WindowsName);
+        Assert.NotNull(info.Processor);
+        Assert.True(info.MemoryBytes > 1L << 30);
+        Assert.NotNull(info.Uptime);
+    }
+
+    [Fact]
     public void DriveSpace_IsReported()
     {
         var space = SystemTools.GetDriveSpace(Folders.SystemDrive);

@@ -13,11 +13,7 @@ public enum ThemeMode
     Dark,
 }
 
-/// <summary>
-/// Light, dark and Windows High Contrast colours. The app keeps one set of brushes and recolours them in
-/// place when the theme changes, so everything on screen (including colours picked by converters) updates
-/// at once without reopening anything.
-/// </summary>
+/// <summary>Light, dark and Windows High Contrast colours, switchable while the app is open.</summary>
 public static class WindowTheme
 {
     private static ResourceDictionary? _colors;
@@ -26,10 +22,13 @@ public static class WindowTheme
     public static bool IsDark { get; private set; }
     public static bool IsHighContrast => SystemParameters.HighContrast;
 
+    /// <summary>Raised after the colours change, so views can redraw colours picked in code (badges).</summary>
+    public static event EventHandler? Changed;
+
     public static void Load(Application app, ThemeMode mode)
     {
         Mode = mode;
-        _colors = Modifiable(BuildColors(out bool dark));
+        _colors = BuildColors(out bool dark);
         IsDark = dark;
         app.Resources.MergedDictionaries.Add(_colors);
         app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Themes/Styles.xaml", UriKind.Relative) });
@@ -53,17 +52,22 @@ public static class WindowTheme
         Refresh();
     }
 
+    /// <summary>
+    /// Swaps in the new colour dictionary; everything using DynamicResource updates by itself. (WPF freezes
+    /// brushes once they're in use, so recolouring them in place isn't possible.)
+    /// </summary>
     private static void Refresh()
     {
-        if (_colors == null) return;
+        var app = Application.Current;
+        if (_colors == null || app == null) return;
         var fresh = BuildColors(out bool dark);
+        int index = app.Resources.MergedDictionaries.IndexOf(_colors);
+        if (index < 0) return;
+        app.Resources.MergedDictionaries[index] = fresh;
+        _colors = fresh;
         IsDark = dark;
-        foreach (var key in fresh.Keys)
-        {
-            if (_colors[key] is SolidColorBrush target && fresh[key] is SolidColorBrush source)
-                target.Color = source.Color;
-        }
-        foreach (Window w in Application.Current.Windows) Apply(w);
+        foreach (Window w in app.Windows) Apply(w);
+        Changed?.Invoke(null, EventArgs.Empty);
     }
 
     private static ResourceDictionary BuildColors(out bool dark)
@@ -80,18 +84,6 @@ public static class WindowTheme
             _ => SystemUsesDarkMode(),
         };
         return new ResourceDictionary { Source = new Uri(dark ? "Themes/Dark.xaml" : "Themes/Light.xaml", UriKind.Relative) };
-    }
-
-    /// <summary>Brushes loaded from XAML may be frozen; swap in clones that can be recoloured later.</summary>
-    private static ResourceDictionary Modifiable(ResourceDictionary source)
-    {
-        var copy = new ResourceDictionary();
-        foreach (var key in source.Keys)
-        {
-            object? value = source[key];
-            copy[key] = value is SolidColorBrush { IsFrozen: true } b ? b.Clone() : value;
-        }
-        return copy;
     }
 
     /// <summary>
