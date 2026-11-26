@@ -130,6 +130,27 @@ internal sealed class SmokeTest
             await RenderAsync(dialog, "9-dialog");
             dialog.Close();
 
+            vm.CurrentPage = vm.ThisPc;
+            await WaitAsync(vm.ThisPc);
+            Check(vm.ThisPc.Rows.Count >= 3, "This PC details were read");
+            Log($"This PC: {vm.ThisPc.Heading}; " + string.Join("; ", vm.ThisPc.Rows.Select(r => $"{r.Label}: {r.Value}")));
+            await RenderAsync(window, "11-this-pc");
+
+            string report = await vm.Services.Reports.CreateAsync(new Progress<string>(_ => { }), CancellationToken.None);
+            string html = await File.ReadAllTextAsync(report);
+            Check(html.Contains("<h1>") && html.Contains("Security"), "Shareable report was created");
+            Check(!html.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase), "Report doesn't contain the Windows user name");
+            File.Delete(report);
+
+            vm.CurrentPage = vm.Settings;
+            await RenderAsync(window, "12-settings");
+
+            // Live theme switch: everything must stay readable without reopening the page.
+            var before = WindowTheme.Mode;
+            WindowTheme.SetMode(WindowTheme.IsDark ? ThemeMode.Light : ThemeMode.Dark);
+            await RenderAsync(window, "13-settings-switched-theme");
+            WindowTheme.SetMode(before);
+
             vm.CurrentPage = vm.Home;
             await RenderAsync(window, "10-home-after");
         }

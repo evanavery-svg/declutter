@@ -22,7 +22,7 @@
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" />
+                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" AutomationProperties.Name="{Binding Name, StringFormat=Select {0}}" />
                     <StackPanel Grid.Column="1">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" Style="{StaticResource ItemTitle}" FontWeight="Normal" MaxWidth="520" />
@@ -35,7 +35,7 @@
                     </StackPanel>
                     <TextBlock Grid.Column="2" Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16,0" />
                     <TextBlock Grid.Column="3" Text="{Binding SizeText}" Style="{StaticResource Figure}" FontSize="14" />
-                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" Margin="12,0,0,0" ToolTip="Show in File Explorer">
+                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" AutomationProperties.Name="Show in File Explorer" Margin="12,0,0,0" ToolTip="Show in File Explorer">
                         <TextBlock Text="&#xE838;" Style="{StaticResource Icon}" FontSize="14" />
                     </Button>
                 </Grid>
@@ -52,7 +52,7 @@
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" />
+                    <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,14,0" AutomationProperties.Name="{Binding Name, StringFormat=Select {0}}" />
                     <StackPanel Grid.Column="1">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" Style="{StaticResource ItemTitle}" FontWeight="Normal" MaxWidth="520" />
@@ -69,7 +69,7 @@
                     </StackPanel>
                     <TextBlock Grid.Column="2" Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16,0" />
                     <TextBlock Grid.Column="3" Text="{Binding SizeText}" Style="{StaticResource Figure}" FontSize="14" />
-                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" Margin="12,0,0,0" ToolTip="Show in File Explorer">
+                    <Button Grid.Column="4" Style="{StaticResource SubtleButton}" Command="{Binding ShowCommand}" AutomationProperties.Name="Show in File Explorer" Margin="12,0,0,0" ToolTip="Show in File Explorer">
                         <TextBlock Text="&#xE838;" Style="{StaticResource Icon}" FontSize="14" />
                     </Button>
                 </Grid>
@@ -116,7 +116,7 @@
                                         Padding="12,2,4,2" Margin="0,3,6,3" ToolTip="{Binding Path}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                                        <Button Style="{StaticResource SubtleButton}" Command="{Binding RemoveCommand}" Padding="6,2" MinHeight="22" Margin="4,0,0,0" ToolTip="Don't scan this folder">
+                                        <Button Style="{StaticResource SubtleButton}" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding Name, StringFormat=Stop scanning {0}}" Padding="6,2" MinHeight="22" Margin="4,0,0,0" ToolTip="Don't scan this folder">
                                             <TextBlock Text="&#xE711;" Style="{StaticResource Icon}" FontSize="10" />
                                         </Button>
                                     </StackPanel>

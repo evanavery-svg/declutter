@@ -62,7 +62,7 @@
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}" Margin="0,0,14,0" ToolTip="Select for uninstalling" />
+                            <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}" AutomationProperties.Name="{Binding Name, StringFormat=Select {0} for uninstalling}" Margin="0,0,14,0" ToolTip="Select for uninstalling" />
                             <StackPanel Grid.Column="1">
                                 <DockPanel>
                                     <Border DockPanel.Dock="Right" Style="{StaticResource Badge}" Margin="10,0,0,0" Background="{Binding AdviceTone, Converter={StaticResource ToneBackground}}"

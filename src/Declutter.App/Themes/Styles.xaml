@@ -185,6 +185,7 @@
 
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
@@ -331,7 +332,10 @@
 
     <!-- ===== Lists ================================================================================== -->
     <!-- A virtualising list of cards with no selection highlight. -->
+    <!-- Lists set Foreground explicitly: ListBox/ListBoxItem otherwise fall back to Windows' default
+         (black) text, which is unreadable in dark mode. -->
     <Style x:Key="CardList" TargetType="ListBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
@@ -344,6 +348,7 @@
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="ListBoxItem">
+                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
                     <Setter Property="Padding" Value="0" />
                     <Setter Property="Margin" Value="0,0,0,4" />
                     <Setter Property="Focusable" Value="False" />
@@ -362,11 +367,13 @@
 
     <!-- Left navigation -->
     <Style x:Key="NavList" TargetType="ListBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="ListBoxItem">
+                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
                     <Setter Property="Cursor" Value="Hand" />
                     <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
                     <Setter Property="Template">

@@ -16,12 +16,14 @@ public sealed class MainViewModel : ObservableObject
         Home = new HomeViewModel(services, this);
         Security = new SecurityViewModel(services);
         Health = new HealthViewModel(services);
+        ThisPc = new ThisPcViewModel(services);
         Updates = new UpdateViewModel(services);
+        Settings = new SettingsViewModel(services, this);
         Junk = new JunkViewModel(services);
         Startup = new StartupViewModel(services);
         Files = new FilesViewModel(services);
         Apps = new AppsViewModel(services);
-        Pages = [Home, Security, Health, Junk, Startup, Files, Apps];
+        Pages = [Home, Security, Health, Junk, Startup, Files, Apps, ThisPc, Settings];
         _currentPage = Home;
 
         RestartAsAdminCommand = new RelayCommand(RestartAsAdmin);
@@ -38,7 +40,9 @@ public sealed class MainViewModel : ObservableObject
     public HomeViewModel Home { get; }
     public SecurityViewModel Security { get; }
     public HealthViewModel Health { get; }
+    public ThisPcViewModel ThisPc { get; }
     public UpdateViewModel Updates { get; }
+    public SettingsViewModel Settings { get; }
     public JunkViewModel Junk { get; }
     public StartupViewModel Startup { get; }
     public FilesViewModel Files { get; }

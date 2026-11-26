@@ -1,0 +1,89 @@
+<UserControl x:Class="Declutter.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <DataTemplate x:Key="PillTemplate">
+            <RadioButton Style="{StaticResource Pill}" Content="{Binding Label}" IsChecked="{Binding IsSelected}"
+                         GroupName="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+        </DataTemplate>
+        <ItemsPanelTemplate x:Key="HorizontalPanel">
+            <StackPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+        <Style x:Key="SettingCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="20,16" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="36,32,36,24" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitle}" />
+
+            <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}" Margin="0,24,0,10" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <DockPanel>
+                        <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Theme.Options}" Tag="{Binding Theme.Group}"
+                                      ItemTemplate="{StaticResource PillTemplate}" ItemsPanel="{StaticResource HorizontalPanel}" VerticalAlignment="Center"
+                                      AutomationProperties.Name="Theme" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Theme" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Text="Light or dark. Changes straight away." Style="{StaticResource Body}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" TextTrimming="None" Margin="0,10,0,0"
+                               Text="Windows High Contrast is on, so Declutter is using your High Contrast colours."
+                               Visibility="{Binding IsHighContrast, Converter={StaticResource Visible}}" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="Updates" Style="{StaticResource SectionTitle}" Margin="0,16,0,10" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <DockPanel>
+                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CheckForUpdates}"
+                                  AutomationProperties.Name="Check for updates automatically" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Check for updates automatically" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Style="{StaticResource Body}" Text="Once a day, Declutter asks GitHub whether there's a newer version. Nothing installs without your click." />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Margin="0,14,0,0">
+                        <Button DockPanel.Dock="Right" Content="Check now" Command="{Binding Updates.CheckCommand}" />
+                        <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center">
+                            <Run Text="{Binding Version, Mode=OneWay}" /><Run Text="  " /><Run Text="{Binding Updates.Status, Mode=OneWay}" />
+                        </TextBlock>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="Privacy" Style="{StaticResource SectionTitle}" Margin="0,16,0,10" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <DockPanel>
+                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding KeepHistory}"
+                                  AutomationProperties.Name="Keep a history of checks" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Keep a history of checks" Style="{StaticResource ItemTitle}" />
+                            <TextBlock Style="{StaticResource Body}" Text="Remembers disk space, boot time and battery health over time so Declutter can show trends. Stored only on this PC." />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Margin="0,14,0,0">
+                        <Button DockPanel.Dock="Right" Content="Open folder" Command="{Binding OpenDataFolderCommand}" />
+                        <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center"
+                                   Text="Declutter's settings, history and activity log all live in one folder on this PC. Nothing is sent anywhere, except update checks with GitHub." />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="About" Style="{StaticResource SectionTitle}" Margin="0,16,0,10" />
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Open project page" Command="{Binding OpenProjectCommand}" />
+                    <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center"
+                               Text="Declutter is open source. The project page explains every tool and how it keeps your files safe." />
+                </DockPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

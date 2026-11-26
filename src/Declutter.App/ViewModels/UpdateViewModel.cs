@@ -71,6 +71,8 @@ public sealed class UpdateViewModel : ObservableObject
             SelfReplace.CleanUp(exe);
         }
 
+        if (!_services.Settings.CheckForUpdates) return;
+
         try
         {
             if (File.Exists(StampFile) &&

@@ -1,4 +1,5 @@
 using Declutter.App.Mvvm;
+using Declutter.Core.Settings;
 using Declutter.Core.Safety;
 using Declutter.Core.Util;
 using Declutter.Windows;
@@ -9,8 +10,10 @@ namespace Declutter.App;
 /// <summary>Everything the pages share, created once at startup.</summary>
 public sealed class AppServices
 {
-    public AppServices(IDialogs dialogs, Func<IntPtr> ownerWindow)
+    public AppServices(IDialogs dialogs, Func<IntPtr> ownerWindow, SettingsStore settingsStore)
     {
+        SettingsStore = settingsStore;
+        Settings = settingsStore.Load();
         Folders = WindowsEnvironment.DetectKnownFolders();
         Guard = new SafetyGuard(Folders);
         IsElevated = WindowsEnvironment.IsElevated;
@@ -22,7 +25,29 @@ public sealed class AppServices
         Recycler = new ShellRecycler(ownerWindow);
         Security = new SecurityCollector(Startup, Folders, IsElevated);
         Defender = new DefenderClient(Log);
+        Reports = new ReportService(this);
     }
+
+    public SettingsStore SettingsStore { get; }
+
+    /// <summary>Current settings; change with <see cref="UpdateSettings"/> so they're saved.</summary>
+    public AppSettings Settings { get; private set; }
+
+    public void UpdateSettings(Func<AppSettings, AppSettings> change)
+    {
+        Settings = change(Settings);
+        try
+        {
+            SettingsStore.Save(Settings);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Write("Settings", "Couldn't save settings: " + ex.Message);
+        }
+    }
+
+    /// <summary>Where Declutter keeps its own files (settings, logs, history).</summary>
+    public static string DataFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Declutter");
 
     public KnownFolders Folders { get; }
     public SafetyGuard Guard { get; }
@@ -35,6 +60,7 @@ public sealed class AppServices
     public ShellRecycler Recycler { get; }
     public SecurityCollector Security { get; }
     public DefenderClient Defender { get; }
+    public ReportService Reports { get; }
     public SessionStats Stats { get; } = new();
 
     /// <summary>Raised after anything that changes free disk space.</summary>

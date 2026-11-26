@@ -14,7 +14,9 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        WindowTheme.Load(this, ThemeFromArgs(e.Args) ?? ThemeMode.System);
+        var settingsStore = new Core.Settings.SettingsStore(Path.Combine(AppServices.DataFolder, "settings.json"));
+        var savedTheme = Enum.TryParse<ThemeMode>(settingsStore.Load().Theme, out var t) ? t : ThemeMode.System;
+        WindowTheme.Load(this, ThemeFromArgs(e.Args) ?? savedTheme);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += (_, args) =>
         {
@@ -30,7 +32,7 @@ public partial class App : Application
         MainWindow = window;
         try
         {
-            _services = new AppServices(Smoke?.Dialogs ?? new WindowDialogs(), () => window.Handle);
+            _services = new AppServices(Smoke?.Dialogs ?? new WindowDialogs(), () => window.Handle, settingsStore);
         }
         catch (Exception ex)
         {

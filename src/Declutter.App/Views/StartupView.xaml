@@ -86,13 +86,13 @@
                                 <TextBlock Text="{Binding LockText}" FontSize="12" Foreground="{DynamicResource Tone.Caution.Foreground}" Margin="0,4,0,0"
                                            Visibility="{Binding LockText, Converter={StaticResource Visible}}" />
                             </StackPanel>
-                            <Button Grid.Column="1" Style="{StaticResource SubtleButton}" Command="{Binding ShowFileCommand}" VerticalAlignment="Center" Margin="12,0"
+                            <Button Grid.Column="1" Style="{StaticResource SubtleButton}" Command="{Binding ShowFileCommand}" AutomationProperties.Name="Show the program in File Explorer" VerticalAlignment="Center" Margin="12,0"
                                     ToolTip="Show the program in File Explorer">
                                 <TextBlock Text="&#xE838;" Style="{StaticResource Icon}" FontSize="14" />
                             </Button>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding StateText}" Width="28" VerticalAlignment="Center" Foreground="{DynamicResource Brush.TextSecondary}" />
-                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}" Margin="8,0,0,0"
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsOn}" AutomationProperties.Name="{Binding Name, StringFormat=Start {0} when you sign in}" IsEnabled="{Binding CanToggle}" Margin="8,0,0,0"
                                           ToolTip="Start this app when you sign in" />
                             </StackPanel>
                         </Grid>
