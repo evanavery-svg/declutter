@@ -28,10 +28,15 @@ public sealed class AppServices
         Defender = new DefenderClient(Log);
         Reports = new ReportService(this);
         History = new HistoryStore(Path.Combine(DataFolder, "history.json"));
+        Explainer = new Explainer(this);
+        Explainer.Shared ??= Explainer;
     }
 
     /// <summary>Local daily history for the Home trends; written only while Settings → Keep history is on.</summary>
     public HistoryStore History { get; }
+
+    /// <summary>Optional AI explanations (needs the user's own API key; see Settings).</summary>
+    public Explainer Explainer { get; }
 
     /// <summary>Raised after something new is recorded, so Home can redraw its trends.</summary>
     public event EventHandler? HistoryChanged;

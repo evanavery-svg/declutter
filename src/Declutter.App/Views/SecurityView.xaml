@@ -90,6 +90,7 @@
                                         <Button Style="{StaticResource ActionButton}" Content="Open Windows Security" Command="{Binding OpenWindowsSecurityCommand}" Visibility="{Binding CanOpenWindowsSecurity, Converter={StaticResource Visible}}" />
                                         <Button Style="{StaticResource ActionButton}" Content="Show file" Command="{Binding ShowFileCommand}" Visibility="{Binding CanShowFile, Converter={StaticResource Visible}}" />
                                         <Button Style="{StaticResource ActionButton}" Content="Search online" Command="{Binding SearchCommand}" Visibility="{Binding CanSearch, Converter={StaticResource Visible}}" />
+                                        <Button Style="{StaticResource ActionButton}" Content="Explain" Command="{Binding ExplainCommand}" AutomationProperties.Name="{Binding Title, StringFormat=Explain {0}}" />
                                         <Button Style="{StaticResource ActionButton}" Content="End program" Command="{Binding EndProcessCommand}" Visibility="{Binding CanEndProcess, Converter={StaticResource Visible}}" />
                                     </WrapPanel>
                                     <Border Style="{StaticResource Badge}" Margin="0,10,0,0" Padding="10,6" Background="{Binding ResultTone, Converter={StaticResource ToneBackground}}"

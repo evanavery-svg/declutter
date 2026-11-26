@@ -1,0 +1,54 @@
+<Window x:Class="Declutter.App.ExplainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="520" SizeToContent="Height" MaxHeight="680" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Brush.Window}" Foreground="{DynamicResource Brush.Text}"
+        TextElement.FontFamily="{DynamicResource Font.Body}" TextElement.FontSize="13">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Margin="24,20,24,20">
+            <TextBlock x:Name="KindText" Style="{StaticResource Caption}" />
+            <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitle}" FontSize="20" TextWrapping="Wrap" />
+
+            <!-- Before the first question: what will be sent, and to whom. -->
+            <StackPanel x:Name="ConsentPanel" Margin="0,12,0,0">
+                <TextBlock Style="{StaticResource Body}"
+                           Text="Declutter will send these details to Claude, Anthropic's AI, using your API key. Your name and user folder are removed. Nothing else on your PC is sent." />
+                <Border Style="{StaticResource Card}" Margin="0,10,0,0" Padding="12,10">
+                    <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="PreviewText" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" />
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <!-- No key yet -->
+            <TextBlock x:Name="SetupText" Style="{StaticResource Body}" Margin="0,12,0,0" Visibility="Collapsed"
+                       Text="Explain uses Claude, Anthropic's AI, with your own Anthropic API key (it costs a fraction of a cent per answer). Add a key under Settings, Explain with AI, then click Explain again." />
+
+            <StackPanel x:Name="BusyPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                <ProgressBar IsIndeterminate="True" />
+                <TextBlock Text="Asking Claude…" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+            </StackPanel>
+
+            <ScrollViewer x:Name="AnswerScroll" MaxHeight="420" VerticalScrollBarVisibility="Auto" Margin="0,12,0,0" Visibility="Collapsed">
+                <TextBox x:Name="AnswerText" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent"
+                         Foreground="{DynamicResource Brush.Text}" FontSize="14" Padding="0" AutomationProperties.Name="Explanation" />
+            </ScrollViewer>
+            <TextBlock x:Name="FooterText" Style="{StaticResource Caption}" Margin="0,12,0,0" TextWrapping="Wrap" Visibility="Collapsed"
+                       Text="Written by Claude (AI), which can be wrong. Double-check before removing anything important." />
+            <TextBlock x:Name="ErrorText" Margin="0,12,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Tone.Danger.Foreground}" Visibility="Collapsed" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="{DynamicResource Brush.Nav}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Padding="24,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="AskButton" Content="Ask Claude" Style="{StaticResource AccentButton}" MinWidth="110" IsDefault="True" Click="OnAsk" />
+                <Button x:Name="SettingsButton" Content="Open Settings" Style="{StaticResource AccentButton}" MinWidth="110" Click="OnSettings" Visibility="Collapsed" />
+                <Button x:Name="CopyButton" Content="Copy" MinWidth="90" Margin="8,0,0,0" Click="OnCopy" Visibility="Collapsed" />
+                <Button Content="Close" MinWidth="90" Margin="8,0,0,0" IsCancel="True" Click="OnClose" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

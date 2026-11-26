@@ -128,6 +128,13 @@ public sealed class StartupItemViewModel : ObservableObject
     private readonly StartupViewModel _owner;
     private bool _busy;
 
+    public RelayCommand ExplainCommand => _explain ??= ExplainCommands.For(() => Core.Explain.ExplainRequest.Of(
+        "App that starts when Windows starts", Item.Name,
+        ("Publisher", Item.Publisher), ("Description", Item.Description), ("Command", Item.Command),
+        ("Starts from", Item.SourceDescription), ("Currently", Item.Enabled ? "turned on" : "turned off"),
+        ("Declutter's view", Item.AdviceReason)));
+    private RelayCommand? _explain;
+
     public StartupItemViewModel(StartupItem item, StartupViewModel owner)
     {
         Item = item;

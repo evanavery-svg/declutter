@@ -5,12 +5,20 @@ and it never deletes anything you haven't reviewed and confirmed.
 
 | Tool | What it does | Speeds up | Frees space |
 |---|---|:-:|:-:|
+| **Home: PC health score** | One-click check-up that scores the PC out of 100, lists every lost point with a button to fix it, and shows 90-day trends | | |
 | **Security check** | Looks for viruses (via Microsoft Defender), hidden crypto-miners, fake Windows programs and tampered settings | ✅ | |
+| **Protection** | Are your files backed up, is the drive encrypted, is Windows up to date and still supported, and what can each browser extension see | | |
 | **Health** | How your drives and battery are holding up: SSD wear, temperature, errors, battery capacity left | | |
+| **Speed** | Why the PC is slow to start (Windows' own boot timings), app services that run all day, and honest hardware advice | ✅ | |
 | **Junk Cleaner** | Temp files, browser caches, old Windows Update downloads, crash dumps, Recycle Bin | | ✅ |
 | **Startup** | Turns off apps that launch every time you sign in (Spotify, Steam, Edge pre-loading, updaters…) | ✅ | |
 | **Files** | Finds large files, old downloads, duplicate copies and your biggest folders | | ✅ |
 | **Apps** | Lists every installed app with its size and flags preinstalled bloatware to uninstall | ✅ | ✅ |
+| **App updates** | Lists apps with newer versions (via Windows' built-in winget) and updates the ones you pick | | |
+| **This PC** | Model, serial number (with a warranty-lookup button), processor, memory, drives, and a shareable report | | |
+
+Every list has a **What is this?** button that can ask Claude, Anthropic's AI, for a plain-English explanation
+(optional, uses your own API key, see [Explain with AI](#explain-with-ai-optional)).
 
 ![Declutter home page](docs/home.png)
 
@@ -23,6 +31,7 @@ and it never deletes anything you haven't reviewed and confirmed.
    You can say No; those parts are just switched off.
 4. If Windows shows **"Windows protected your PC"**, click **More info → Run anyway**. This happens because
    the app isn't code-signed (signing certificates cost money), not because something is wrong.
+   [How code signing would fix this](docs/code-signing.md).
 
 ## Screenshots
 
@@ -32,7 +41,7 @@ and it never deletes anything you haven't reviewed and confirmed.
 | **Duplicate files** | **Apps** |
 | ![Duplicate files](docs/files-duplicates.png) | ![Apps](docs/apps.png) |
 
-Light and dark mode follow your Windows setting. These screenshots are taken automatically by CI on a
+Light and dark mode follow your Windows setting (or pick one in Settings), and Windows High Contrast themes are honoured. These screenshots are taken automatically by CI on a
 fresh Windows machine, which is why the numbers are small.
 
 ## Security check
@@ -84,6 +93,69 @@ bottom of the sidebar). When there is one, an **Update now** button appears. Cli
 
 Nothing installs without your click. If Declutter is in a folder it can't write to, it offers the download page instead.
 
+## Protection
+
+Four questions that matter more than any clean-up:
+
+| Check | What it looks at |
+|---|---|
+| **Backup** | OneDrive folder backup (Desktop, Documents, Pictures), File History and when it last ran, and well-known backup apps |
+| **Device security** | BitLocker / device encryption (important on a laptop that could be stolen), Secure Boot and the TPM |
+| **Windows Update** | When updates last installed, a restart waiting to finish an update, and whether your Windows version still gets security fixes |
+| **Browser extensions** | Every extension in Edge, Chrome, Brave, Vivaldi, Opera and Firefox, rated by how much it can see (all sites vs a few), and whether it came from the official store |
+
+Each card explains what it found and links straight to the right Windows setting. Encryption and TPM details need administrator rights.
+
+## Speed: why is my PC slow to start?
+
+Windows records how long every start-up took and which programs or drivers slowed it down. The Speed page reads that
+log (administrator rights needed) and shows your typical start-up time, the trend, and the repeat offenders. It also
+lists background services that apps install to run all day; updaters and usage-reporting helpers can safely be set to
+**Manual** (they start when their app needs them), and Declutter remembers the original setting so **Undo** puts it back.
+Hardware advice is honest: an SSD if Windows is on a spinning disk, more memory only if you actually run short.
+
+## PC health score and history
+
+**Run a check-up** on Home runs every read-only check and gives a score out of 100. It starts at 100 and loses points
+only for specific, fixable things (a security finding, no backup, a nearly full drive, a failing drive, too many
+startup apps, a slow start, outdated apps, weeks without a restart), each with a button to the page that fixes it.
+
+Declutter keeps a small daily history on this PC (free space, start-up time, battery health, score) to draw 90-day
+trends and warn you before the drive fills up ("at the rate it's been filling up, your drive will be full in about 6
+weeks"). Turn it off or clear it in **Settings**.
+
+## Explain with AI (optional)
+
+Not sure what "Contoso Update Helper" or a browser extension is? **What is this?** asks Claude for a short,
+plain-English explanation and a suggestion (keep it, fine to turn off, look into this…).
+
+- **Off until you add a key.** It uses your own Anthropic API key (Settings → *Explain with AI*; get one at
+  [console.anthropic.com](https://console.anthropic.com/settings/keys)). Each answer costs a fraction of a cent.
+- **The key is encrypted** with Windows' data protection, so only your Windows account on this PC can read it.
+- **You see exactly what's sent** before anything is sent: just the one item you clicked (name, publisher, path),
+  with your user name and user folder removed. Nothing else on your PC leaves it.
+- Answers come from AI and can be wrong, so Declutter says so under each one.
+
+## Shareable report
+
+**This PC → Create report** writes one HTML file (in `Documents\Declutter reports`) covering the system, storage and
+health, security, protection, speed, startup apps and installed apps. It's handy to send to whoever helps you with
+your PC. Your user name and user folder are removed from it.
+
+## Settings and accessibility
+
+- Theme: match Windows, light or dark, switching instantly; Windows High Contrast colours are used automatically.
+- Turn off the daily update check or the history, clear the history, and open the folder where Declutter keeps
+  its settings, history and logs (`%LOCALAPPDATA%\Declutter`).
+- Everything works from the keyboard, buttons and toggles have screen-reader names, and CI checks that every piece
+  of text in every screenshot meets WCAG contrast in both light and dark themes.
+
+## Privacy
+
+Declutter has no account, no telemetry and no ads. It only goes online to check GitHub for updates (can be turned
+off), when you click **Update apps** (winget downloads from each app's publisher) and when you ask Claude to explain
+something with your own key.
+
 ## How it keeps you safe
 
 Deleting the wrong file is the one thing a clean-up tool must never do, so safety is built in at several layers:
@@ -108,6 +180,8 @@ Deleting the wrong file is the one thing a clean-up tool must never do, so safet
 - **Apps are removed with their own uninstaller.** Runtimes and drivers (Visual C++, .NET, Realtek, Intel…)
   are marked **Needed** and can't be batch-selected.
 - **Restore point button.** Home → *Create restore point* saves a Windows restore point first if you want one.
+- **Service changes can be undone.** Declutter only ever sets an app's service to Manual (never Disabled), and
+  remembers the original setting for **Undo**.
 - **Activity log.** Everything changed is written to `%LOCALAPPDATA%\Declutter\Logs` (also under *Activity log*
   in the app).
 
@@ -154,9 +228,10 @@ dotnet publish src/Declutter.App -c Release -r win-x64 --self-contained `
 ```
 
 **CI** (`.github/workflows/build.yml`) runs on every push: both test suites, x64 + ARM64 builds, and a
-smoke test that launches the real app (`Declutter.exe --smoke-test <dir>`). The smoke test opens every
-page, runs the read-only scans, recycles test duplicates in a throwaway folder, fails on any XAML binding
-error, and uploads screenshots as a build artifact. Pushes to the default branch publish a GitHub Release.
+smoke test that launches the real app (`Declutter.exe --smoke-test <dir> --theme light|dark`), once per theme. The
+smoke test opens every page, runs the read-only scans and a full check-up, recycles test duplicates in a throwaway
+folder, creates a report and checks your user name isn't in it, switches theme live, fails on any XAML binding error
+or on any text below WCAG contrast, and uploads screenshots as a build artifact. Pushes to the default branch publish a GitHub Release.
 
 ### Adding a junk location
 

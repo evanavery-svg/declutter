@@ -202,6 +202,12 @@ public sealed class FindingViewModel : ObservableObject
     }
 
     public SecurityFinding Finding { get; }
+
+    public RelayCommand ExplainCommand => _explain ??= ExplainCommands.For(() => Core.Explain.ExplainRequest.Of(
+        "Security check finding", Finding.Title,
+        ("How sure Declutter is", SeverityLabel), ("Declutter's explanation", Finding.Explanation),
+        ("Evidence", Finding.Evidence), ("File", Finding.FilePath)));
+    private RelayCommand? _explain;
     public string Title => Finding.Title;
     public string Explanation => Finding.Explanation;
     public string? Evidence => Finding.Evidence;

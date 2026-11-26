@@ -18,6 +18,19 @@ public sealed class SettingsViewModel : PageViewModel
             Services.UpdateSettings(s => s with { Theme = Theme.Selected.ToString() });
         };
         ClearHistoryCommand = new RelayCommand(ClearHistory);
+        SaveKeyCommand = new RelayCommand(p =>
+        {
+            if (p is not System.Windows.Controls.PasswordBox box || string.IsNullOrWhiteSpace(box.Password)) return;
+            Services.Explainer.SaveKey(box.Password);
+            box.Clear();
+            OnPropertiesChanged(nameof(HasApiKey), nameof(ApiKeyStatus));
+        });
+        RemoveKeyCommand = new RelayCommand(() =>
+        {
+            Services.Explainer.SaveKey(null);
+            OnPropertiesChanged(nameof(HasApiKey), nameof(ApiKeyStatus));
+        });
+        GetKeyCommand = new RelayCommand(() => SystemTools.Open("https://console.anthropic.com/settings/keys"));
         OpenDataFolderCommand = new RelayCommand(() =>
         {
             Directory.CreateDirectory(AppServices.DataFolder);
@@ -33,6 +46,15 @@ public sealed class SettingsViewModel : PageViewModel
     public UpdateViewModel Updates => _main.Updates;
     public RelayCommand OpenDataFolderCommand { get; }
     public RelayCommand ClearHistoryCommand { get; }
+    public RelayCommand SaveKeyCommand { get; }
+    public RelayCommand RemoveKeyCommand { get; }
+    public RelayCommand GetKeyCommand { get; }
+
+    public bool HasApiKey => Services.Explainer.IsConfigured;
+
+    public string ApiKeyStatus => HasApiKey
+        ? "A key is saved, encrypted so only your Windows account can read it. Paste a new one to replace it."
+        : "No key saved, so Explain is off. Paste a key from the Anthropic Console (it starts with sk-ant-).";
 
     private void ClearHistory()
     {

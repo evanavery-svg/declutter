@@ -190,6 +190,12 @@ public sealed class AppRowViewModel : ObservableObject
     public InstalledApp App { get; }
     public string Name => App.Name;
 
+    public RelayCommand ExplainCommand => _explain ??= ExplainCommands.For(() => Core.Explain.ExplainRequest.Of(
+        App.Kind == AppKind.Store ? "Installed Store app" : "Installed app", App.Name,
+        ("Publisher", App.Publisher), ("Version", App.Version), ("Installed in", App.InstallLocation),
+        ("Declutter's view", AdviceReason is { Length: > 0 } r ? $"{AdviceLabel}: {r}" : AdviceLabel)));
+    private RelayCommand? _explain;
+
     public string Subtitle => string.Join("  ·  ", new[]
     {
         App.Publisher,

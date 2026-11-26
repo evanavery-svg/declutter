@@ -57,6 +57,27 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="Explain with AI (optional)" Style="{StaticResource SectionTitle}" Margin="0,16,0,10" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Body}"
+                               Text="Not sure what an app, service or extension is? The &quot;What is this?&quot; buttons can ask Claude, Anthropic's AI, for a plain-English explanation and a suggestion. It uses your own Anthropic API key; each answer costs well under a cent. Only the item you click is sent, without your name or user folder, and only after you confirm." />
+                    <DockPanel Margin="0,12,0,0">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Save key" Style="{StaticResource AccentButton}" Command="{Binding SaveKeyCommand}" CommandParameter="{Binding ElementName=KeyBox}" Margin="8,0,0,0" />
+                            <Button Content="Remove key" Command="{Binding RemoveKeyCommand}" Margin="8,0,0,0" Visibility="{Binding HasApiKey, Converter={StaticResource Visible}}" />
+                        </StackPanel>
+                        <PasswordBox x:Name="KeyBox" Padding="8,6" Background="{DynamicResource Brush.Input}" Foreground="{DynamicResource Brush.Text}"
+                                     BorderBrush="{DynamicResource Brush.ControlBorder}" CaretBrush="{DynamicResource Brush.Text}" VerticalContentAlignment="Center"
+                                     AutomationProperties.Name="Anthropic API key" />
+                    </DockPanel>
+                    <DockPanel Margin="0,8,0,0">
+                        <Button DockPanel.Dock="Right" Content="Get a key" Style="{StaticResource LinkButton}" Command="{Binding GetKeyCommand}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding ApiKeyStatus}" Style="{StaticResource Caption}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Privacy" Style="{StaticResource SectionTitle}" Margin="0,16,0,10" />
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>

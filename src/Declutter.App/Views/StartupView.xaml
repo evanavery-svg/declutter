@@ -85,6 +85,8 @@
                                 </TextBlock>
                                 <TextBlock Text="{Binding LockText}" FontSize="12" Foreground="{DynamicResource Tone.Caution.Foreground}" Margin="0,4,0,0"
                                            Visibility="{Binding LockText, Converter={StaticResource Visible}}" />
+                                <Button Content="What is this?" Command="{Binding ExplainCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        AutomationProperties.Name="{Binding Name, StringFormat=Explain {0}}" />
                             </StackPanel>
                             <Button Grid.Column="1" Style="{StaticResource SubtleButton}" Command="{Binding ShowFileCommand}" AutomationProperties.Name="Show the program in File Explorer" VerticalAlignment="Center" Margin="12,0"
                                     ToolTip="Show the program in File Explorer">

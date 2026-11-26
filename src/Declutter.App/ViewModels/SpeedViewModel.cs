@@ -135,6 +135,12 @@ public sealed class ServiceRowViewModel : ObservableObject
     }
 
     public ServiceInfo Service { get; }
+
+    public RelayCommand ExplainCommand => _explain ??= ExplainCommands.For(() => Core.Explain.ExplainRequest.Of(
+        "Windows background service installed by an app", Service.DisplayName,
+        ("Service name", Service.Name), ("Company", Service.Company), ("Program", Service.Path),
+        ("Starts", Service.StartMode + (Service.DelayedAutoStart ? " (delayed)" : "")), ("Declutter's view", AdviceReason)));
+    private RelayCommand? _explain;
     public string Name => Service.DisplayName;
     public string Subtitle => string.Join("  ·  ", new[] { Service.Company, Service.Running ? "Running now" : "Not running" }.Where(s => s != null));
     public ServiceAdvice Advice { get; }

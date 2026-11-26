@@ -146,6 +146,14 @@ public sealed class ExtensionRowViewModel
     }
 
     public BrowserExtension Extension { get; }
+
+    public RelayCommand ExplainCommand => _explain ??= ExplainCommands.For(() => Core.Explain.ExplainRequest.Of(
+        $"{Extension.Browser} browser extension", Extension.Name,
+        ("Extension ID", Extension.Id), ("Version", Extension.Version), ("Description", Extension.Description),
+        ("From the official store", Extension.FromStore ? "yes" : "no"), ("Turned on", Extension.Enabled ? "yes" : "no"),
+        ("Permissions", string.Join(", ", Extension.Permissions.Take(20))), ("Sites it can read", string.Join(", ", Extension.Sites.Take(10))),
+        ("Declutter's view", Why)));
+    private RelayCommand? _explain;
     public ExtensionRisk Risk { get; }
     public string Name => Extension.Name;
     public string Subtitle => string.Join("  ·  ", new[]

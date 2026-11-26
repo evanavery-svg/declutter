@@ -167,6 +167,33 @@ internal sealed class SmokeTest
             vm.CurrentPage = vm.Settings;
             await RenderAsync(window, "12-settings");
 
+            // Explain: the window without a key, then the consent preview with a placeholder key (no API call is made).
+            var explainRequest = Core.Explain.ExplainRequest.Of("App that starts when Windows starts", "Contoso Updater",
+                ("Command", vm.Services.Folders.UserProfile + @"\AppData\Local\Contoso\update.exe --background"), ("Publisher", "Contoso Ltd"));
+            string? savedKey = vm.Services.Settings.ProtectedApiKey;
+            try
+            {
+                vm.Services.UpdateSettings(s => s with { ProtectedApiKey = null });
+                var explainNoKey = new ExplainWindow(vm.Services.Explainer, explainRequest) { Owner = window };
+                explainNoKey.Show();
+                await RenderAsync(explainNoKey, "12b-explain-no-key");
+                explainNoKey.Close();
+
+                vm.Services.Explainer.SaveKey("sk-ant-placeholder-for-smoke-test");
+                Check(vm.Services.Explainer.IsConfigured, "API key is saved and read back (DPAPI)");
+                Check(!(vm.Services.Settings.ProtectedApiKey ?? "").Contains("placeholder"), "API key is stored encrypted");
+                var explain = new ExplainWindow(vm.Services.Explainer, explainRequest) { Owner = window };
+                explain.Show();
+                string preview = vm.Services.Explainer.Describe(explainRequest);
+                Check(!preview.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) && preview.Contains("Contoso"), "Explain sends the item without the user name");
+                await RenderAsync(explain, "12c-explain-consent");
+                explain.Close();
+            }
+            finally
+            {
+                vm.Services.UpdateSettings(s => s with { ProtectedApiKey = savedKey });
+            }
+
             // Live theme switch: everything must stay readable without reopening the page.
             var before = WindowTheme.Mode;
             WindowTheme.SetMode(WindowTheme.IsDark ? ThemeMode.Light : ThemeMode.Dark);

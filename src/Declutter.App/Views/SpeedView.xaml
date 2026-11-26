@@ -126,6 +126,8 @@
                                     <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Caption}" />
                                     <TextBlock Text="{Binding AdviceReason}" Style="{StaticResource Body}" Margin="0,4,0,0" />
                                     <TextBlock Text="{Binding StateText}" Style="{StaticResource Caption}" Margin="0,4,0,0" />
+                                    <Button Content="What is this?" Command="{Binding ExplainCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        AutomationProperties.Name="{Binding Name, StringFormat=Explain {0}}" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>
