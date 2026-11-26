@@ -17,6 +17,7 @@ public sealed class SettingsViewModel : PageViewModel
             WindowTheme.SetMode(Theme.Selected);
             Services.UpdateSettings(s => s with { Theme = Theme.Selected.ToString() });
         };
+        ClearHistoryCommand = new RelayCommand(ClearHistory);
         OpenDataFolderCommand = new RelayCommand(() =>
         {
             Directory.CreateDirectory(AppServices.DataFolder);
@@ -31,6 +32,23 @@ public sealed class SettingsViewModel : PageViewModel
     public ChoiceSet<ThemeMode> Theme { get; }
     public UpdateViewModel Updates => _main.Updates;
     public RelayCommand OpenDataFolderCommand { get; }
+    public RelayCommand ClearHistoryCommand { get; }
+
+    private void ClearHistory()
+    {
+        if (!Services.Dialogs.Confirm("Clear history?", "Removes the remembered disk space, start-up times, battery health and scores. The trends on Home start again from today.", "Clear", danger: true))
+            return;
+        try
+        {
+            Services.History.Clear();
+            Services.Log.Write("Settings", "Cleared history");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Services.Dialogs.Show("Couldn't clear history", ex.Message);
+        }
+        _main.Home.LoadTrends();
+    }
     public RelayCommand OpenProjectCommand { get; }
     public string Version => _main.Version;
     public bool IsHighContrast => WindowTheme.IsHighContrast;
@@ -52,6 +70,7 @@ public sealed class SettingsViewModel : PageViewModel
         {
             Services.UpdateSettings(s => s with { KeepHistory = value });
             OnPropertyChanged();
+            _main.Home.LoadTrends();
         }
     }
 }

@@ -65,8 +65,14 @@ public sealed class StartupViewModel : PageViewModel
         Items.Clear();
         foreach (var item in items) Items.Add(new StartupItemViewModel(item, this));
         Status = "";
+        HasRun = true;
         UpdateSummary();
     });
+
+    /// <summary>True once the list has been read at least once.</summary>
+    public bool HasRun { get; private set; }
+
+    public int OnCount => Items.Count(i => i.IsOn);
 
     internal async Task<bool> ToggleAsync(StartupItemViewModel vm, bool enable)
     {
@@ -102,6 +108,7 @@ public sealed class StartupViewModel : PageViewModel
 
     private void UpdateSummary()
     {
+        if (HasRun) Services.RecordHistory(new Core.History.HistorySnapshot { StartupAppsOn = OnCount });
         int on = Items.Count(i => i.IsOn);
         int suggested = SuggestedCount;
         Summary = (Items.Count == 1 ? $"{on} of 1 startup app is turned on." : $"{on} of {Items.Count} startup apps are turned on.") +

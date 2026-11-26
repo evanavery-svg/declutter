@@ -65,7 +65,8 @@
                                   AutomationProperties.Name="Keep a history of checks" />
                         <StackPanel Margin="0,0,16,0">
                             <TextBlock Text="Keep a history of checks" Style="{StaticResource ItemTitle}" />
-                            <TextBlock Style="{StaticResource Body}" Text="Remembers disk space, boot time and battery health over time so Declutter can show trends. Stored only on this PC." />
+                            <TextBlock Style="{StaticResource Body}" Text="Remembers disk space, boot time, battery health and health scores over time so Home can show trends and warn before the drive fills up. Stored only on this PC." />
+                            <Button Content="Clear history" Command="{Binding ClearHistoryCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="0,6,0,0" />
                         </StackPanel>
                     </DockPanel>
                     <DockPanel Margin="0,14,0,0">

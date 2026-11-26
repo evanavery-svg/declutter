@@ -1,3 +1,4 @@
+using Declutter.Core.History;
 using Declutter.App.Mvvm;
 using Declutter.Core.Settings;
 using Declutter.Core.Safety;
@@ -26,6 +27,28 @@ public sealed class AppServices
         Security = new SecurityCollector(Startup, Folders, IsElevated);
         Defender = new DefenderClient(Log);
         Reports = new ReportService(this);
+        History = new HistoryStore(Path.Combine(DataFolder, "history.json"));
+    }
+
+    /// <summary>Local daily history for the Home trends; written only while Settings → Keep history is on.</summary>
+    public HistoryStore History { get; }
+
+    /// <summary>Raised after something new is recorded, so Home can redraw its trends.</summary>
+    public event EventHandler? HistoryChanged;
+
+    /// <summary>Adds today's readings to the history (merged with anything else recorded today).</summary>
+    public void RecordHistory(HistorySnapshot reading)
+    {
+        if (!Settings.KeepHistory) return;
+        try
+        {
+            History.Record(reading with { Date = DateOnly.FromDateTime(DateTime.Now) });
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Write("History", "Couldn't save history: " + ex.Message);
+        }
     }
 
     public SettingsStore SettingsStore { get; }

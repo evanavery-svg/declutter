@@ -92,6 +92,8 @@ public sealed class HealthViewModel : PageViewModel
         HasBattery = snapshot.Battery != null || Batteries.Count > 0;
         HasRun = true;
         Status = "";
+        if (Batteries.FirstOrDefault(b => b.Percent != null)?.Percent is double batteryHealth)
+            Services.RecordHistory(new Core.History.HistorySnapshot { BatteryHealthPercent = batteryHealth });
         Services.Log.Write("Health", $"Checked {Disks.Count} drive(s) and {Batteries.Count} battery(ies): " +
                                      string.Join("; ", Disks.Concat(Batteries).Select(c => $"{c.Name}: {c.GradeLabel}")));
     });
@@ -114,6 +116,7 @@ public sealed class HealthCardViewModel
         Subtitle = subtitle;
         Summary = assessment.Summary;
         Percent = percent;
+        Grade = assessment.Grade;
         (GradeLabel, GradeTone) = assessment.Grade switch
         {
             HealthGrade.Good => ("Good", Tone.Good),
@@ -127,6 +130,7 @@ public sealed class HealthCardViewModel
     public string Name { get; }
     public string Subtitle { get; }
     public string Summary { get; }
+    public HealthGrade Grade { get; }
     public string GradeLabel { get; }
     public Tone GradeTone { get; }
     public IReadOnlyList<NoteViewModel> Notes { get; }

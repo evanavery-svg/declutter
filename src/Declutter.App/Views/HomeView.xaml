@@ -1,6 +1,7 @@
 <UserControl x:Class="Declutter.App.Views.HomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Declutter.App.Controls">
     <UserControl.Resources>
         <Style x:Key="ToolCard" TargetType="Border" BasedOn="{StaticResource Card}">
             <Setter Property="Margin" Value="0,0,12,12" />
@@ -24,6 +25,60 @@
                 </DockPanel>
             </Border>
 
+            <!-- PC health check-up -->
+            <Border Style="{StaticResource Card}" Margin="0,20,12,0" Padding="24,20">
+                <StackPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Command="{Binding CheckUpCommand}" VerticalAlignment="Top" Margin="24,0,0,0">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Run a check-up" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasScore}" Value="True">
+                                                <Setter Property="Text" Value="Check again" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                        <Grid DockPanel.Dock="Left" Width="84" Height="84" Margin="0,0,20,0" Visibility="{Binding HasScore, Converter={StaticResource Visible}}">
+                            <c:ScoreRing Value="{Binding ScoreFraction}" Stroke="{Binding ScoreTone, Converter={StaticResource ToneForeground}}" Track="{DynamicResource Brush.Track}" />
+                            <TextBlock Text="{Binding Score}" FontFamily="{DynamicResource Font.Display}" FontSize="28" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="{Binding Score, StringFormat=Health score {0} out of 100}" />
+                        </Grid>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="PC health" Style="{StaticResource SectionTitle}" />
+                            <Border Style="{StaticResource Badge}" HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="{Binding HasScore, Converter={StaticResource Visible}}"
+                                    Background="{Binding ScoreTone, Converter={StaticResource ToneBackground}}">
+                                <TextBlock Text="{Binding ScoreLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding ScoreTone, Converter={StaticResource ToneForeground}}" />
+                            </Border>
+                            <TextBlock Text="{Binding LastScoreText}" Style="{StaticResource Body}" Margin="0,6,0,0" Visibility="{Binding HasScore, Converter={StaticResource Collapsed}}" />
+                            <TextBlock Text="{Binding ScoreDetail}" Style="{StaticResource Body}" Margin="0,6,0,0" Visibility="{Binding HasScore, Converter={StaticResource Visible}}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <ProgressBar IsIndeterminate="{Binding IsBusy}" Margin="0,14,0,0" Visibility="{Binding CheckUpStatus, Converter={StaticResource Visible}}" />
+                    <TextBlock Text="{Binding CheckUpStatus}" Style="{StaticResource Caption}" Margin="0,6,0,0" Visibility="{Binding CheckUpStatus, Converter={StaticResource Visible}}" />
+                    <ItemsControl ItemsSource="{Binding Deductions}" Margin="0,10,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,4">
+                                    <Button DockPanel.Dock="Right" Content="{Binding FixText}" Command="{Binding FixCommand}" CommandParameter="{Binding Page}"
+                                            Style="{StaticResource SubtleButton}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                    <Border DockPanel.Dock="Left" Style="{StaticResource Badge}" MinWidth="44" Margin="0,0,12,0" VerticalAlignment="Center"
+                                            Background="{DynamicResource Tone.Caution.Background}">
+                                        <TextBlock Text="{Binding PointsText}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource Tone.Caution.Foreground}" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Reason}" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding UncheckedText}" Style="{StaticResource Caption}" Margin="0,6,0,0" Visibility="{Binding UncheckedText, Converter={StaticResource Visible}}" />
+                </StackPanel>
+            </Border>
+
             <!-- Disk -->
             <Border Style="{StaticResource Card}" Margin="0,20,12,0" Padding="24,20">
                 <Grid>
@@ -41,6 +96,36 @@
                     <Button Grid.Column="1" Style="{StaticResource AccentButton}" Content="Find junk to clean" VerticalAlignment="Center" Margin="24,0,0,0"
                             Command="{Binding GoCommand}" CommandParameter="{Binding Main.Junk}" />
                 </Grid>
+            </Border>
+
+            <!-- Trends from the local history -->
+            <Border Style="{StaticResource Card}" Margin="0,12,12,0" Padding="24,18" Visibility="{Binding HasTrends, Converter={StaticResource Visible}}">
+                <StackPanel>
+                    <TextBlock Text="Over the last 90 days" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding ForecastText}" Style="{StaticResource Body}" Margin="0,6,0,0" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Tone.Caution.Foreground}" Visibility="{Binding ForecastText, Converter={StaticResource Visible}}" />
+                    <UniformGrid Columns="3" Margin="0,12,0,0">
+                        <StackPanel Margin="0,0,16,0" Visibility="{Binding HasFreeSpaceTrend, Converter={StaticResource Visible}}">
+                            <TextBlock Text="Free space (GB)" Style="{StaticResource ItemTitle}" />
+                            <c:Sparkline Values="{Binding FreeSpaceTrend}" Stroke="{DynamicResource Brush.Accent}" Height="44" Margin="0,6,0,4"
+                                         AutomationProperties.Name="Free disk space over time" />
+                            <TextBlock Text="{Binding FreeSpaceTrendText}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,16,0" Visibility="{Binding HasScoreTrend, Converter={StaticResource Visible}}">
+                            <TextBlock Text="Health score" Style="{StaticResource ItemTitle}" />
+                            <c:Sparkline Values="{Binding ScoreTrend}" Stroke="{DynamicResource Brush.Accent}" Height="44" Margin="0,6,0,4" FromZero="True"
+                                         AutomationProperties.Name="Health score over time" />
+                            <TextBlock Text="{Binding ScoreTrendText}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Visibility="{Binding HasBootTrend, Converter={StaticResource Visible}}">
+                            <TextBlock Text="Start-up time (s)" Style="{StaticResource ItemTitle}" />
+                            <c:Sparkline Values="{Binding BootTrend}" Stroke="{DynamicResource Brush.Accent}" Height="44" Margin="0,6,0,4" FromZero="True"
+                                         AutomationProperties.Name="Start-up time over time" />
+                            <TextBlock Text="{Binding BootTrendText}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </UniformGrid>
+                    <TextBlock Text="Kept on this PC only. Turn off or clear it in Settings." Style="{StaticResource Caption}" Margin="0,10,0,0" />
+                </StackPanel>
             </Border>
 
             <!-- Security -->

@@ -81,6 +81,7 @@ public sealed class MainViewModel : ObservableObject
     public void RefreshDrive()
     {
         _drive = SystemTools.GetDriveSpace(Services.Folders.SystemDrive);
+        if (_drive != null) Services.RecordHistory(new Core.History.HistorySnapshot { DriveFreeBytes = _drive.Free, DriveTotalBytes = _drive.Total });
         OnPropertiesChanged(nameof(DriveName), nameof(DriveUsedFraction), nameof(DriveText), nameof(DriveIsLow));
         Home.DriveChanged();
     }
@@ -122,7 +123,7 @@ public sealed class MainViewModel : ObservableObject
     }
 }
 
-public sealed class HomeViewModel : PageViewModel
+public sealed partial class HomeViewModel : PageViewModel
 {
     private readonly MainViewModel _main;
     private string? _restorePointMessage;
@@ -133,6 +134,10 @@ public sealed class HomeViewModel : PageViewModel
         _main = main;
         GoCommand = new RelayCommand(p => { if (p is PageViewModel page) _main.CurrentPage = page; });
         RestorePointCommand = new AsyncCommand(CreateRestorePointAsync, () => !IsBusy);
+        CheckUpCommand = new AsyncCommand(CheckUpAsync, () => !IsBusy);
+        FixCommand = new RelayCommand(p => { if (p is string page && PageByName(page) is { } target) _main.CurrentPage = target; });
+        services.HistoryChanged += (_, _) => LoadTrends();
+        LoadTrends();
     }
 
     public override string Title => "Home";

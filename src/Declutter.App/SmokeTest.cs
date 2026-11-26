@@ -176,6 +176,39 @@ internal sealed class SmokeTest
             await RenderAsync(window, "14-after-theme-switch");
             Check(window.PageHost.Content == vm.Junk, "Navigation still works after a theme switch");
 
+            // Health score from a check-up (pages already loaded are reused), then trends from a sample history.
+            vm.CurrentPage = vm.Home;
+            await vm.Home.CheckUpAsync();
+            Check(vm.Home.HasScore, "Check-up produced a health score");
+            Log($"Health score: {vm.Home.Score} ({vm.Home.ScoreLabel}); " + string.Join("; ", vm.Home.Deductions.Select(d => $"{d.PointsText} {d.Reason}")));
+            string historyFile = vm.Services.History.Path;
+            string? realHistory = File.Exists(historyFile) ? await File.ReadAllTextAsync(historyFile) : null;
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Now);
+                const long gb = 1L << 30;
+                var sample = Enumerable.Range(0, 40).Select(i => new Core.History.HistorySnapshot
+                {
+                    Date = today.AddDays(i - 39),
+                    DriveTotalBytes = 256 * gb,
+                    DriveFreeBytes = (long)((90 - i * 1.5 + (i % 3)) * gb),
+                    BootSeconds = i % 4 == 0 ? 70 - i : null,
+                    Score = i % 7 == 0 ? 60 + i / 2 : null,
+                }).ToList();
+                await File.WriteAllTextAsync(historyFile, System.Text.Json.JsonSerializer.Serialize(sample));
+                vm.Home.LoadTrends();
+                Check(vm.Home.HasFreeSpaceTrend && vm.Home.HasScoreTrend && vm.Home.HasBootTrend, "Trends are shown from history");
+                Check(vm.Home.ForecastText != null, "Disk-full forecast is shown");
+                Log("Forecast: " + vm.Home.ForecastText);
+                await RenderAsync(window, "15-home-score-and-trends");
+            }
+            finally
+            {
+                if (realHistory != null) await File.WriteAllTextAsync(historyFile, realHistory);
+                else File.Delete(historyFile);
+                vm.Home.LoadTrends();
+            }
+
             vm.CurrentPage = vm.Home;
             await RenderAsync(window, "10-home-after");
         }

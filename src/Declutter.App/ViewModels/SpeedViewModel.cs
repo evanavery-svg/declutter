@@ -37,6 +37,7 @@ public sealed class SpeedViewModel : PageViewModel
     }
 
     public bool BootNeedsAdmin => HasRun && !IsElevated;
+    public double? TypicalBootSeconds => _boot?.TypicalSeconds;
     public bool HasBootData => _boot?.Latest != null;
     public string BootHeadline => _boot?.TypicalSeconds is double t ? $"Usually ready in {t:0} seconds" : "No start-up timings yet";
     public string BootVerdict => _boot?.Verdict ?? "";
@@ -76,6 +77,7 @@ public sealed class SpeedViewModel : PageViewModel
 
         HasRun = true;
         Status = "";
+        if (_boot?.TypicalSeconds is double typical) Services.RecordHistory(new Core.History.HistorySnapshot { BootSeconds = typical });
         OnPropertiesChanged(nameof(BootNeedsAdmin), nameof(HasBootData), nameof(BootHeadline), nameof(BootVerdict), nameof(BootDetail),
             nameof(BootTrend), nameof(HasCulprits), nameof(SuggestedCount));
     });

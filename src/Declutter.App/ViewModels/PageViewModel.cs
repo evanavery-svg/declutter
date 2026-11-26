@@ -45,6 +45,9 @@ public abstract class PageViewModel(AppServices services) : ObservableObject
 
     protected virtual Task OnFirstVisitAsync() => Task.CompletedTask;
 
+    /// <summary>Stops the page loading itself on first visit (the Home check-up has already loaded it).</summary>
+    internal void MarkVisited() => _visited = true;
+
     /// <summary>Runs one long operation with busy state and cancellation.</summary>
     protected async Task RunBusyAsync(Func<CancellationToken, Task> work)
     {
