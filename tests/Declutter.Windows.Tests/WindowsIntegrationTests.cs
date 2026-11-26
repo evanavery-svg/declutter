@@ -278,6 +278,38 @@ public class WindowsIntegrationTests(Xunit.Abstractions.ITestOutputHelper output
     }
 
     [Fact]
+    public async Task Protection_CollectorsRun()
+    {
+        var apps = await new InstalledApps(NullActivityLog.Instance, WindowsEnvironment.IsElevated).GetAppsAsync();
+        var collector = new Protection.ProtectionCollector(Folders, WindowsEnvironment.IsElevated);
+        var info = await Health.SystemInfoCollector.CollectAsync(CancellationToken.None);
+
+        var backup = await collector.ReadBackupAsync(apps, CancellationToken.None);
+        var device = await collector.ReadDeviceSecurityAsync(CancellationToken.None);
+        var updates = await collector.ReadUpdatesAsync(info.WindowsName, info.WindowsVersion, CancellationToken.None);
+        output.WriteLine(backup.ToString());
+        output.WriteLine(device.ToString());
+        output.WriteLine(updates.ToString());
+        foreach (var r in new[]
+                 {
+                     Core.Protection.BackupCheck.Evaluate(backup, DateTime.UtcNow),
+                     Core.Protection.DeviceSecurityCheck.Evaluate(device),
+                     Core.Protection.WindowsUpdateCheck.Evaluate(updates, DateTime.UtcNow),
+                 })
+            output.WriteLine($"{r.Area}: {r.Grade} - {r.Summary}");
+
+        output.WriteLine("Update history readable: " + (updates.LastSuccessfulUpdateUtc != null));
+
+        var extensions = await Protection.ExtensionScanner.ScanAsync(Folders.LocalAppData, Folders.RoamingAppData, CancellationToken.None);
+        foreach (var e in extensions) output.WriteLine($"{e.Browser}: {e.Name} {e.Version}");
+
+        var updater = new Protection.AppUpdater(NullActivityLog.Instance);
+        output.WriteLine("winget available: " + updater.IsAvailable);
+        if (updater.IsAvailable)
+            foreach (var u in await updater.ListAsync(CancellationToken.None)) output.WriteLine($"update: {u.Name} {u.Version} -> {u.Available}");
+    }
+
+    [Fact]
     public void DriveSpace_IsReported()
     {
         var space = SystemTools.GetDriveSpace(Folders.SystemDrive);

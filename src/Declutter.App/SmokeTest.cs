@@ -138,6 +138,20 @@ internal sealed class SmokeTest
             foreach (var n in vm.Speed.Hardware) Log($"  hardware: {n.Text}");
             await RenderAsync(window, "10b-speed");
 
+            vm.CurrentPage = vm.Protection;
+            await WaitAsync(vm.Protection);
+            Check(vm.Protection.HasRun && vm.Protection.Areas.Count == 3, "Protection check completed");
+            Log($"Protection: {vm.Protection.Summary}");
+            foreach (var a in vm.Protection.Areas) Log($"  {a.Name}: {a.GradeLabel} - {a.Summary}");
+            Log($"  {vm.Protection.ExtensionSummary}");
+            await RenderAsync(window, "10c-protection");
+
+            vm.CurrentPage = vm.AppUpdates;
+            await WaitAsync(vm.AppUpdates);
+            Check(vm.AppUpdates.HasRun, "App update check completed");
+            Log($"App updates: winget {(vm.AppUpdates.WingetMissing ? "missing" : "found")}; {vm.AppUpdates.Summary}");
+            await RenderAsync(window, "10d-app-updates");
+
             vm.CurrentPage = vm.ThisPc;
             await WaitAsync(vm.ThisPc);
             Check(vm.ThisPc.Rows.Count >= 3, "This PC details were read");
@@ -146,7 +160,7 @@ internal sealed class SmokeTest
 
             string report = await vm.Services.Reports.CreateAsync(new Progress<string>(_ => { }), CancellationToken.None);
             string html = await File.ReadAllTextAsync(report);
-            Check(html.Contains("<h1>") && html.Contains("Security"), "Shareable report was created");
+            Check(html.Contains("<h1>") && html.Contains("Security") && html.Contains("Protection") && html.Contains("Speed"), "Shareable report was created");
             Check(!html.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase), "Report doesn't contain the Windows user name");
             File.Delete(report);
 

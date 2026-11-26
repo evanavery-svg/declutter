@@ -18,6 +18,8 @@
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ThisPcViewModel}"><views:ThisPcView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SpeedViewModel}"><views:SpeedView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProtectionViewModel}"><views:ProtectionView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AppUpdatesViewModel}"><views:AppUpdatesView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:StartupViewModel}"><views:StartupView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:FilesViewModel}"><views:FilesView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:AppsViewModel}"><views:AppsView /></DataTemplate>

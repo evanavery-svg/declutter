@@ -17,6 +17,8 @@ public sealed class MainViewModel : ObservableObject
         Security = new SecurityViewModel(services);
         Health = new HealthViewModel(services);
         Speed = new SpeedViewModel(services);
+        Protection = new ProtectionViewModel(services);
+        AppUpdates = new AppUpdatesViewModel(services);
         ThisPc = new ThisPcViewModel(services);
         Updates = new UpdateViewModel(services);
         Settings = new SettingsViewModel(services, this);
@@ -24,8 +26,11 @@ public sealed class MainViewModel : ObservableObject
         Startup = new StartupViewModel(services);
         Files = new FilesViewModel(services);
         Apps = new AppsViewModel(services);
-        Pages = [Home, Security, Health, Speed, Junk, Startup, Files, Apps, ThisPc, Settings];
+        Pages = [Home, Security, Protection, Health, Speed, Junk, Startup, Files, Apps, AppUpdates, ThisPc, Settings];
         _currentPage = Home;
+
+        services.Reports.Contributors.Add(ProtectionReportAsync);
+        services.Reports.Contributors.Add(SpeedReportAsync);
 
         RestartAsAdminCommand = new RelayCommand(RestartAsAdmin);
         OpenLogCommand = new RelayCommand(() =>
@@ -42,6 +47,8 @@ public sealed class MainViewModel : ObservableObject
     public SecurityViewModel Security { get; }
     public HealthViewModel Health { get; }
     public SpeedViewModel Speed { get; }
+    public ProtectionViewModel Protection { get; }
+    public AppUpdatesViewModel AppUpdates { get; }
     public ThisPcViewModel ThisPc { get; }
     public UpdateViewModel Updates { get; }
     public SettingsViewModel Settings { get; }
@@ -82,6 +89,36 @@ public sealed class MainViewModel : ObservableObject
     {
         if (SystemTools.RestartElevated())
             Application.Current.Shutdown();
+    }
+
+    private static string? ReportTone(Tone tone) => tone switch
+    {
+        Tone.Good => "good",
+        Tone.Caution => "caution",
+        Tone.Danger => "danger",
+        _ => null,
+    };
+
+    private async Task<IReadOnlyList<Core.Reports.ReportSection>> ProtectionReportAsync(CancellationToken ct)
+    {
+        if (!Protection.HasRun) await Protection.RefreshAsync();
+        var rows = Protection.Areas.Select(a => new Core.Reports.ReportRow(a.Name, a.Summary, ReportTone(a.GradeTone))).ToList();
+        rows.Add(new("Browser extensions", Protection.ExtensionSummary));
+        rows.AddRange(Protection.Extensions.Where(e => e.Risk >= Core.Protection.ExtensionRisk.Review)
+            .Select(e => new Core.Reports.ReportRow($"{e.Name} ({e.Extension.Browser})", e.Why, ReportTone(e.RiskTone))));
+        if (AppUpdates.OutdatedCount is int n)
+            rows.Add(new("App updates", n == 0 ? "All up to date" : $"{n} app{(n == 1 ? "" : "s")} with updates waiting", n == 0 ? "good" : "caution"));
+        return [new("Protection", rows)];
+    }
+
+    private async Task<IReadOnlyList<Core.Reports.ReportSection>> SpeedReportAsync(CancellationToken ct)
+    {
+        if (!Speed.HasRun) await Speed.RefreshAsync();
+        var rows = new List<Core.Reports.ReportRow> { new("Start-up time", Speed.BootHeadline + (Speed.BootVerdict.Length > 0 ? ". " + Speed.BootVerdict : "")) };
+        rows.AddRange(Speed.Culprits.Select(c => new Core.Reports.ReportRow("Slowed start-up", $"{c.Name}: about {c.AverageSeconds:0.0} s extra, {c.Times} time{(c.Times == 1 ? "" : "s")}", "caution")));
+        rows.Add(new("App services starting with Windows", $"{Speed.ServiceRows.Count}, of which {Speed.SuggestedCount} could be set to Manual"));
+        rows.AddRange(Speed.Hardware.Select(h => new Core.Reports.ReportRow("Hardware tip", h.Text)));
+        return [new("Speed", rows)];
     }
 }
 
@@ -141,4 +178,5 @@ public sealed class HomeViewModel : PageViewModel
         RestorePointMessage = outcome.Message;
         RestorePointTone = outcome.Created ? Tone.Good : Tone.Caution;
     });
+
 }
